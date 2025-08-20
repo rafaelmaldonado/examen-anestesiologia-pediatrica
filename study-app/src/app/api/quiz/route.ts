@@ -1,45 +1,49 @@
 import { NextResponse } from "next/server";
-import { db } from "@/db";
-import { questions, options } from "@/db/schema";
-import { eq } from "drizzle-orm";
-import { sql } from "drizzle-orm";
+import { adminDb } from "@/lib/firebase/admin";
 
-// GET a random set of questions for a quiz
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const certificationIdStr = searchParams.get("certificationId");
-  const countStr = searchParams.get("count") || "10"; // Default to 10 questions
+  const certificationId = searchParams.get("certificationId");
+  const countStr = searchParams.get("count") || "10";
+  const count = parseInt(countStr, 10);
 
-  if (!certificationIdStr) {
+  if (!certificationId) {
     return NextResponse.json({ error: "certificationId is required" }, { status: 400 });
   }
 
-  const certificationId = parseInt(certificationIdStr, 10);
-  const count = parseInt(countStr, 10);
-
   try {
-    const quizQuestions = await db.query.questions.findMany({
-        where: eq(questions.certificationId, certificationId),
-        orderBy: sql`RANDOM()`,
-        limit: count,
-        with: {
-            options: {
-                columns: {
-                    id: true,
-                    optionText: true,
-                    // IMPORTANT: DO NOT SEND isCorrect or explanation to the client during the quiz
-                }
-            }
+    const questionsRef = adminDb.collection(`certifications/${certificationId}/questions`);
+    const snapshot = await questionsRef.get();
+
+    if (snapshot.empty) {
+        return NextResponse.json([]);
+    }
+
+    const allQuestions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    // Fisher-Yates shuffle algorithm
+    for (let i = allQuestions.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [allQuestions[i], allQuestions[j]] = [allQuestions[j], allQuestions[i]];
+    }
+
+    const randomQuestions = allQuestions.slice(0, count);
+
+    // Exclude correct answer details before sending to client
+    const questionsForQuiz = randomQuestions.map(q => {
+        const optionsForQuiz = q.options.map((opt: any) => ({
+            id: opt.id,
+            optionText: opt.optionText,
+        }));
+
+        return {
+            id: q.id,
+            questionText: q.questionText,
+            options: optionsForQuiz.sort(() => Math.random() - 0.5), // Shuffle options
         }
     });
 
-    // Shuffle options for each question
-    quizQuestions.forEach(q => {
-        q.options.sort(() => Math.random() - 0.5);
-    });
-
-
-    return NextResponse.json(quizQuestions);
+    return NextResponse.json(questionsForQuiz);
   } catch (error) {
     console.error("Error fetching quiz questions:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

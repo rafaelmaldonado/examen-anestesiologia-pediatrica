@@ -1,18 +1,17 @@
 export interface Certification {
-  id: number;
+  id: string;
   name: string;
   description: string | null;
   isAdobe: boolean;
 }
 
 export interface Option {
-    id: number;
+    id: string;
     optionText: string;
 }
 
 export interface Question {
-    id: number;
-    certificationId: number;
+    id: string;
     questionText: string;
     options: Option[];
 }

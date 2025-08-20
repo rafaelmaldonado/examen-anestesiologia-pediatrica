@@ -7,7 +7,7 @@ import type { Question } from '@/types';
 export default function QuizPage() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [userAnswers, setUserAnswers] = useState<{ [key: number]: number }>({});
+  const [userAnswers, setUserAnswers] = useState<{ [key: string]: string }>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -40,7 +40,7 @@ export default function QuizPage() {
     }
   }, [certificationId]);
 
-  const handleOptionSelect = (questionId: number, optionId: number) => {
+  const handleOptionSelect = (questionId: string, optionId: string) => {
     setUserAnswers({ ...userAnswers, [questionId]: optionId });
   };
 
@@ -48,14 +48,14 @@ export default function QuizPage() {
     setSubmitting(true);
     try {
         const answersForApi = Object.entries(userAnswers).map(([questionId, selectedOptionId]) => ({
-            questionId: parseInt(questionId, 10),
+            questionId,
             selectedOptionId,
         }));
 
         const res = await fetch('/api/results', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ certificationId: parseInt(certificationId as string, 10), answers: answersForApi }),
+            body: JSON.stringify({ certificationId: certificationId as string, answers: answersForApi }),
         });
 
         if (!res.ok) {

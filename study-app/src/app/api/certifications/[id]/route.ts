@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server";
-import { db } from "@/db";
-import { certifications } from "@/db/schema";
-import { eq } from "drizzle-orm";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { adminDb } from "@/lib/firebase/admin";
+import { getVerifiedUser } from "@/lib/firebase/auth-helper";
+import { deleteCollection } from "@/lib/firebase/firestore-helpers";
 
 interface Params {
   params: { id: string };
@@ -11,13 +9,13 @@ interface Params {
 
 // PUT to update a certification (admin only)
 export async function PUT(request: Request, { params }: Params) {
-  const session = await getServerSession(authOptions);
-  if (!session || !session.user) {
+  const user = await getVerifiedUser();
+  if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
-    const id = parseInt(params.id, 10);
+    const id = params.id;
     const body = await request.json();
     const { name, description, isAdobe } = body;
 
@@ -25,17 +23,14 @@ export async function PUT(request: Request, { params }: Params) {
       return NextResponse.json({ error: "Name is required" }, { status: 400 });
     }
 
-    const updatedCertification = await db
-      .update(certifications)
-      .set({ name, description, isAdobe })
-      .where(eq(certifications.id, id))
-      .returning();
+    const docRef = adminDb.collection("certifications").doc(id);
+    await docRef.update({
+        name,
+        description,
+        isAdobe,
+    });
 
-    if (updatedCertification.length === 0) {
-      return NextResponse.json({ error: "Certification not found" }, { status: 404 });
-    }
-
-    return NextResponse.json(updatedCertification[0]);
+    return NextResponse.json({ id, name, description, isAdobe });
   } catch (error) {
     console.error(`Error updating certification ${params.id}:`, error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
@@ -44,24 +39,22 @@ export async function PUT(request: Request, { params }: Params) {
 
 // DELETE a certification (admin only)
 export async function DELETE(request: Request, { params }: Params) {
-  const session = await getServerSession(authOptions);
-  if (!session || !session.user) {
+  const user = await getVerifiedUser();
+  if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
-    const id = parseInt(params.id, 10);
+    const id = params.id;
+    const questionsPath = `certifications/${id}/questions`;
 
-    const deletedCertification = await db
-      .delete(certifications)
-      .where(eq(certifications.id, id))
-      .returning();
+    // First, recursively delete the 'questions' subcollection
+    await deleteCollection(questionsPath);
 
-    if (deletedCertification.length === 0) {
-      return NextResponse.json({ error: "Certification not found" }, { status: 404 });
-    }
+    // Then, delete the certification document itself
+    await adminDb.collection("certifications").doc(id).delete();
 
-    return NextResponse.json({ message: "Certification deleted successfully" });
+    return NextResponse.json({ message: "Certification and all its questions deleted successfully" });
   } catch (error) {
     console.error(`Error deleting certification ${params.id}:`, error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

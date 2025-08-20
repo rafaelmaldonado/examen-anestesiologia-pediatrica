@@ -1,29 +1,22 @@
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { redirect } from 'next/navigation';
+'use client';
+
+import { useAuth } from '@/app/providers';
 import Link from "next/link";
+import SignOutButton from './SignOutButton';
+import { useRouter } from 'next/navigation';
 
-async function SignOut() {
-    'use server';
-    // This is a placeholder. Real sign out is done on the client side.
-    // I will create a client component for the sign out button.
-    return (
-        <form action={async () => {
-            'use server';
-            // This is not how next-auth signout works.
-            // I need a client component.
-        }}>
-            <button type="submit">Sign Out</button>
-        </form>
-    )
-}
+export default function AdminPage() {
+  const { user, loading } = useAuth();
+  const router = useRouter();
 
-export default async function AdminPage() {
-  const session = await getServerSession(authOptions);
+  if (loading) {
+    return <div className="text-center p-8">Loading...</div>;
+  }
 
-  // The middleware should handle this, but it's good practice for direct navigation
-  if (!session) {
-    redirect('/login');
+  // This check is redundant due to middleware but is good practice
+  if (!user) {
+    router.push('/login');
+    return null; // Return null while redirecting
   }
 
   return (
@@ -31,13 +24,8 @@ export default async function AdminPage() {
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Admin Dashboard</h1>
         <div className="flex items-center space-x-4">
-            <p className="text-gray-600">Welcome, {session.user?.email}</p>
-            {/* Sign out needs to be a client component */}
-            <Link href="/api/auth/signout">
-                <span className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
-                    Sign Out
-                </span>
-            </Link>
+            <p className="text-gray-600">Welcome, {user.email}</p>
+            <SignOutButton />
         </div>
       </div>
 
@@ -52,10 +40,9 @@ export default async function AdminPage() {
                   <p>Create, edit, and delete certification categories.</p>
               </div>
             </Link>
-            <div className="p-6 bg-white rounded-lg shadow-md">
-                <h3 className="text-xl font-bold mb-2">Manage Questions</h3>
-                <p>Add, edit, and delete questions for each certification.</p>
-                {/* Link to be added later */}
+            <div className="p-6 bg-gray-200 rounded-lg shadow-md">
+                <h3 className="text-xl font-bold mb-2 text-gray-500">Manage Questions (Coming Soon)</h3>
+                <p className="text-gray-600">Add, edit, and delete questions for each certification.</p>
             </div>
         </div>
       </div>

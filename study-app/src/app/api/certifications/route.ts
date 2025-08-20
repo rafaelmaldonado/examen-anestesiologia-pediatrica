@@ -1,14 +1,13 @@
 import { NextResponse } from "next/server";
-import { db } from "@/db";
-import { certifications } from "@/db/schema";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { adminDb } from "@/lib/firebase/admin";
+import { getVerifiedUser } from "@/lib/firebase/auth-helper";
 
 // GET all certifications (publicly accessible)
 export async function GET() {
   try {
-    const allCertifications = await db.query.certifications.findMany();
-    return NextResponse.json(allCertifications);
+    const snapshot = await adminDb.collection("certifications").orderBy("name").get();
+    const certifications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    return NextResponse.json(certifications);
   } catch (error) {
     console.error("Error fetching certifications:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
@@ -17,8 +16,8 @@ export async function GET() {
 
 // POST a new certification (admin only)
 export async function POST(request: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session || !session.user) {
+  const user = await getVerifiedUser();
+  if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -30,16 +29,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Name is required" }, { status: 400 });
     }
 
-    const newCertification = await db
-      .insert(certifications)
-      .values({
-        name,
-        description,
-        isAdobe,
-      })
-      .returning();
+    const docRef = await adminDb.collection("certifications").add({
+      name,
+      description: description || "",
+      isAdobe: isAdobe || false,
+    });
 
-    return NextResponse.json(newCertification[0], { status: 201 });
+    return NextResponse.json({ id: docRef.id, name, description, isAdobe }, { status: 201 });
   } catch (error) {
     console.error("Error creating certification:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

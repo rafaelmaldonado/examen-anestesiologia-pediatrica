@@ -61,7 +61,7 @@ export default function CertificationsAdminPage() {
         setIsAdobe(cert.isAdobe);
     };
 
-    const handleDelete = async (id: number) => {
+    const handleDelete = async (id: string) => {
         if (confirm('Are you sure you want to delete this certification? This will also delete all associated questions.')) {
             try {
                 const res = await fetch(`/api/certifications/${id}`, { method: 'DELETE' });

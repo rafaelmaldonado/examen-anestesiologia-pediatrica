@@ -1,35 +1,32 @@
 'use client';
 
 import { useState } from 'react';
-import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '@/lib/firebase/client';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
 
     try {
-      const result = await signIn('credentials', {
-        redirect: false,
-        email,
-        password,
-      });
-
-      if (result?.error) {
-        setError('Invalid email or password');
-      } else if (result?.ok) {
-        // Redirect to the admin page on successful login
-        router.push('/admin');
-      }
-    } catch (error) {
-        console.error("Login failed:", error);
-        setError("An unexpected error occurred.");
+      await signInWithEmailAndPassword(auth, email, password);
+      // onAuthStateChanged in the provider will handle the user state.
+      // Redirect to the admin dashboard.
+      router.push('/admin');
+    } catch (err: any) {
+      console.error("Firebase Auth Error:", err.code, err.message);
+      setError('Failed to sign in. Please check your email and password.');
+    } finally {
+        setLoading(false);
     }
   };
 
@@ -49,6 +46,7 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               className="w-full px-3 py-2 border rounded text-black"
               required
+              disabled={loading}
             />
           </div>
           <div className="mb-6">
@@ -62,14 +60,16 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-3 py-2 border rounded text-black"
               required
+              disabled={loading}
             />
           </div>
-          {error && <p className="text-red-500 text-xs italic mb-4">{error}</p>}
+          {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
           <button
             type="submit"
-            className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50"
+            disabled={loading}
           >
-            Sign In
+            {loading ? 'Signing In...' : 'Sign In'}
           </button>
         </form>
       </div>
