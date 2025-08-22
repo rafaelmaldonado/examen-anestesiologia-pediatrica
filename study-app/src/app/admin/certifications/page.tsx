@@ -2,6 +2,7 @@
 
 import { useState, useEffect, FormEvent } from 'react';
 import type { Certification } from '@/types';
+import Link from 'next/link';
 
 export default function CertificationsAdminPage() {
     const [certifications, setCertifications] = useState<Certification[]>([]);
@@ -96,9 +97,12 @@ export default function CertificationsAdminPage() {
                                     <p className="font-bold text-lg text-black">{cert.name}</p>
                                     <p className="text-sm text-gray-600">{cert.description}</p>
                                 </div>
-                                <div className="space-x-2">
-                                    <button onClick={() => handleEdit(cert)} className="bg-yellow-500 text-white py-1 px-3 rounded">Edit</button>
-                                    <button onClick={() => handleDelete(cert.id)} className="bg-red-500 text-white py-1 px-3 rounded">Delete</button>
+                                <div className="space-x-2 flex-shrink-0">
+                                    <Link href={`/admin/questions/${cert.id}`}>
+                                        <span className="bg-green-500 text-white py-1 px-3 rounded hover:bg-green-600">Manage Questions</span>
+                                    </Link>
+                                    <button onClick={() => handleEdit(cert)} className="bg-yellow-500 text-white py-1 px-3 rounded hover:bg-yellow-600">Edit</button>
+                                    <button onClick={() => handleDelete(cert.id)} className="bg-red-500 text-white py-1 px-3 rounded hover:bg-red-600">Delete</button>
                                 </div>
                             </div>
                         ))}
