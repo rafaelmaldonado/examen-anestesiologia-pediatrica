@@ -1,0 +1,12 @@
+firebase.json
+.firebaserc
+functions/
+.firebase/
+.env.local
+.env.development
+.env.test
+node_modules/
+.next/
+out/
+*.log
+.DS_Store

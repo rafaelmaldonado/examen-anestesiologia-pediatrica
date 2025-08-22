@@ -4,6 +4,10 @@ import { adminAuth } from "@/lib/firebase/admin";
 // This route is called by the client to create a session cookie after successful login.
 export async function POST(request: NextRequest) {
   try {
+    if (!adminAuth) {
+      return NextResponse.json({ error: "Firebase Admin not initialized" }, { status: 500 });
+    }
+
     const body = await request.json();
     const idToken = body.idToken;
 
@@ -35,6 +39,11 @@ export async function POST(request: NextRequest) {
 
 // This route is called to sign out and clear the session cookie.
 export async function DELETE() {
+  try {
+    if (!adminAuth) {
+      return NextResponse.json({ error: "Firebase Admin not initialized" }, { status: 500 });
+    }
+
     const options = {
         name: "session",
         value: "",
@@ -43,4 +52,8 @@ export async function DELETE() {
     const response = NextResponse.json({ status: "success" }, { status: 200 });
     response.cookies.set(options);
     return response;
+  } catch (error) {
+    console.error("Session logout error:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  }
 }

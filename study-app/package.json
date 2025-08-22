@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:vercel": "DISABLE_ESLINT=true next build",
     "start": "next start",
     "lint": "./node_modules/.bin/next lint",
     "db:generate": "npx drizzle-kit generate",

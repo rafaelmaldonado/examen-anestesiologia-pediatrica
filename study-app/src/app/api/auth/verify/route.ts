@@ -2,6 +2,10 @@ import { NextResponse, NextRequest } from "next/server";
 import { adminAuth } from "@/lib/firebase/admin";
 
 export async function GET(request: NextRequest) {
+    if (!adminAuth) {
+        return NextResponse.json({ error: 'Firebase Admin not initialized' }, { status: 500 });
+    }
+
     const sessionCookie = request.cookies.get('session')?.value;
 
     if (!sessionCookie) {

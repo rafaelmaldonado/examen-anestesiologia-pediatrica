@@ -30,16 +30,8 @@ if (!admin.apps.length && serviceAccount) {
   }
 }
 
-// Export with error handling
-let adminAuth, adminDb;
-try {
-  adminAuth = admin.auth();
-  adminDb = admin.firestore();
-} catch (error) {
-  console.warn('Firebase Admin services not available:', error);
-  // Create mock objects for build time
-  adminAuth = null as any;
-  adminDb = null as any;
-}
+// Export with proper typing
+const adminAuth = admin.apps.length > 0 ? admin.auth() : null;
+const adminDb = admin.apps.length > 0 ? admin.firestore() : null;
 
 export { adminAuth, adminDb };

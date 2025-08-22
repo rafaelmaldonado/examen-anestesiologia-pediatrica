@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { adminDb } from "@/lib/firebase/admin";
+import { checkFirebaseAdmin } from "@/lib/firebase/admin-helpers";
 import { getVerifiedUser } from "@/lib/firebase/auth-helper";
 import { deleteCollection } from "@/lib/firebase/firestore-helpers";
 
@@ -11,6 +11,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   }
 
   try {
+    const { adminDb } = checkFirebaseAdmin();
     const { id } = await params;
     const body = await request.json();
     const { name, description, isAdobe } = body;
@@ -42,6 +43,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
   }
 
   try {
+    const { adminDb } = checkFirebaseAdmin();
     const { id } = await params;
     const questionsPath = `certifications/${id}/questions`;
 
