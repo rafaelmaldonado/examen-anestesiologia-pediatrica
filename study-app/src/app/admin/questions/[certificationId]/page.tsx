@@ -22,6 +22,11 @@ export default function QuestionsAdminPage() {
         { id: 'new2', optionText: '', isCorrect: false, explanation: '' },
     ]);
 
+    // State for bulk import
+    const [jsonFile, setJsonFile] = useState<File | null>(null);
+    const [importing, setImporting] = useState(false);
+    const [importError, setImportError] = useState<string | null>(null);
+
     useEffect(() => {
         if (certificationId) {
             fetchData();
@@ -110,6 +115,51 @@ export default function QuestionsAdminPage() {
         ]);
     };
 
+    const handleBulkImport = async () => {
+        if (!jsonFile) {
+            setImportError("Please select a JSON file to import.");
+            return;
+        }
+        setImporting(true);
+        setImportError(null);
+
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            try {
+                const content = e.target?.result;
+                if (typeof content !== 'string') throw new Error("Could not read file content.");
+
+                const data = JSON.parse(content);
+                if (!data.questions || !Array.isArray(data.questions)) {
+                    throw new Error("Invalid JSON format: 'questions' array not found.");
+                }
+
+                const res = await fetch('/api/questions/bulk', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ certificationId, questions: data.questions }),
+                });
+
+                if (!res.ok) {
+                    throw new Error((await res.json()).error || "Failed to import questions.");
+                }
+
+                alert("Import successful!");
+                fetchData(); // Refresh the questions list
+            } catch (err: any) {
+                setImportError(err.message);
+            } finally {
+                setImporting(false);
+                setJsonFile(null);
+            }
+        };
+        reader.onerror = () => {
+            setImportError("Failed to read the file.");
+            setImporting(false);
+        };
+        reader.readAsText(jsonFile);
+    };
+
     if (loading) return <div className="text-center p-8">Loading...</div>;
     if (error) return <div className="text-center p-8 text-red-500">{error}</div>;
 
@@ -140,6 +190,27 @@ export default function QuestionsAdminPage() {
             </div>
 
             <hr className="my-12"/>
+
+            <div className="mb-12">
+                <h2 className="text-2xl font-semibold mb-4">Bulk Import from JSON</h2>
+                <div className="p-6 bg-white rounded-lg shadow">
+                    <p className="text-sm text-gray-600 mb-2">Upload a JSON file with an array of questions. See README for schema.</p>
+                    <input
+                        type="file"
+                        accept=".json"
+                        onChange={(e) => setJsonFile(e.target.files ? e.target.files[0] : null)}
+                        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                    />
+                    <button
+                        onClick={handleBulkImport}
+                        disabled={!jsonFile || importing}
+                        className="mt-4 bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50"
+                    >
+                        {importing ? 'Importing...' : 'Import Questions'}
+                    </button>
+                    {importError && <p className="text-red-500 text-sm mt-2">{importError}</p>}
+                </div>
+            </div>
 
             <div>
                 <h2 className="text-2xl font-semibold mb-4">{isEditing ? 'Edit Question' : 'Add New Question'}</h2>
