@@ -1,5 +1,5 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { getAuth, setPersistence, browserSessionPersistence } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
@@ -15,5 +15,12 @@ const firebaseConfig = {
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const auth = getAuth(app);
 const db = getFirestore(app);
+
+// Configure Firebase Auth to use session persistence to avoid localStorage issues
+if (typeof window !== 'undefined') {
+  setPersistence(auth, browserSessionPersistence).catch((error) => {
+    console.warn('Failed to set Firebase persistence:', error);
+  });
+}
 
 export { app, auth, db };

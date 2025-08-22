@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import type { Question } from '@/types';
+import { safeJsonStorage } from '@/lib/storage-helper';
 
 export default function QuizPage() {
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -63,7 +64,8 @@ export default function QuizPage() {
         }
         const resultData = await res.json();
 
-        localStorage.setItem('quizResults', JSON.stringify(resultData));
+        // Use safe storage helper instead of direct localStorage
+        safeJsonStorage.setItem('quizResults', resultData);
         router.push(`/quiz/results`);
 
     } catch (err: any) {
@@ -73,57 +75,98 @@ export default function QuizPage() {
     }
   };
 
-  if (loading) return <div className="flex justify-center items-center h-screen"><div className="text-xl font-semibold">Loading Quiz...</div></div>;
-  if (error) return <div className="flex justify-center items-center h-screen"><div className="text-xl font-semibold text-red-500">Error: {error}</div></div>;
+  if (loading) return (
+    <div className="flex justify-center items-center h-screen">
+      <div className="text-center">
+        <div className="spinner-neon w-12 h-12 mx-auto mb-4"></div>
+        <div className="text-xl font-semibold text-glow-purple">Loading Quiz...</div>
+      </div>
+    </div>
+  );
+  
+  if (error) return (
+    <div className="flex justify-center items-center h-screen">
+      <div className="text-xl font-semibold text-red-400 bg-red-900/20 border border-red-500/30 p-6 rounded-lg">
+        Error: {error}
+      </div>
+    </div>
+  );
 
   const currentQuestion = questions[currentQuestionIndex];
 
   return (
-    <div className="container mx-auto p-4 sm:p-8 max-w-3xl">
-      <h1 className="text-3xl font-bold mb-6 text-center">Quiz in Progress</h1>
-      <div className="bg-white p-6 rounded-lg shadow-lg">
-        <p className="text-right text-sm text-gray-500 mb-2">Question {currentQuestionIndex + 1} of {questions.length}</p>
-        <h2 className="text-2xl font-semibold mb-6">{currentQuestion.questionText}</h2>
-        <div className="space-y-3">
+    <div className="container mx-auto p-4 sm:p-8 max-w-4xl min-h-screen">
+      <div className="text-center mb-8">
+        <h1 className="text-4xl font-bold mb-4 text-glow-purple">Certification Quiz</h1>
+        <div className="text-glow-orange">
+          Question {currentQuestionIndex + 1} of {questions.length}
+        </div>
+      </div>
+      
+      <div className="card-dark p-8 rounded-2xl mb-8">
+        <div className="mb-6">
+          <div className="w-full bg-gray-700 rounded-full h-2 mb-6">
+            <div 
+              className="bg-gradient-to-r from-purple-500 to-orange-500 h-2 rounded-full transition-all duration-300" 
+              style={{width: `${((currentQuestionIndex + 1) / questions.length) * 100}%`}}
+            ></div>
+          </div>
+        </div>
+        
+        <h2 className="text-2xl font-semibold mb-8 text-gray-100 leading-relaxed">
+          {currentQuestion.questionText}
+        </h2>
+        
+        <div className="space-y-4">
           {currentQuestion.options.map(opt => (
             <div key={opt.id}>
-              <label className="flex items-center p-4 rounded-lg border-2 border-gray-200 cursor-pointer transition-all has-[:checked]:bg-blue-50 has-[:checked]:border-blue-500">
+              <label className="flex items-center p-5 rounded-xl border-2 border-purple-500/20 cursor-pointer transition-all hover:border-purple-500/40 has-[:checked]:border-purple-500 has-[:checked]:bg-purple-500/10 group">
                 <input
                   type="radio"
                   name={`question-${currentQuestion.id}`}
                   value={opt.id}
                   checked={userAnswers[currentQuestion.id] === opt.id}
                   onChange={() => handleOptionSelect(currentQuestion.id, opt.id)}
-                  className="w-4 h-4"
+                  className="w-5 h-5 text-purple-500 bg-transparent border-2 border-purple-500/50 focus:ring-purple-500 focus:ring-2"
                 />
-                <span className="ml-4 text-lg text-black">{opt.optionText}</span>
+                <span className="ml-4 text-lg text-gray-300 group-has-[:checked]:text-purple-300 group-hover:text-white transition-colors">
+                  {opt.optionText}
+                </span>
               </label>
             </div>
           ))}
         </div>
       </div>
-      <div className="flex justify-between items-center mt-8">
+      
+      <div className="flex justify-between items-center">
         <button
             onClick={() => setCurrentQuestionIndex(i => Math.max(0, i - 1))}
             disabled={currentQuestionIndex === 0}
-            className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-6 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-gray-600 hover:bg-gray-500 text-white font-bold py-3 px-8 rounded-xl disabled:opacity-30 disabled:cursor-not-allowed transition-all"
         >
-            Previous
+            ← Previous
         </button>
         {currentQuestionIndex < questions.length - 1 ? (
             <button
                 onClick={() => setCurrentQuestionIndex(i => Math.min(questions.length - 1, i + 1))}
-                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg"
+                className="btn-neon-purple font-bold py-3 px-8 rounded-xl"
             >
-                Next
+                Next →
             </button>
         ) : (
             <button
                 onClick={handleSubmit}
                 disabled={submitting || Object.keys(userAnswers).length !== questions.length}
-                className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                className="btn-neon-orange font-bold py-3 px-8 rounded-xl disabled:opacity-30 disabled:cursor-not-allowed"
             >
-                {submitting ? 'Submitting...' : 'Finish & See Results'}
+                {submitting ? (
+                  <div className="flex items-center">
+                    <div className="spinner-neon w-5 h-5 mr-3"></div>
+                    Submitting...
+                  </div>
+                ) : (
+                  'Finish & See Results ✨'
+                )}
             </button>
         )}
       </div>

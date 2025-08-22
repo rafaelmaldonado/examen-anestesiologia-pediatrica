@@ -1,64 +1,93 @@
+'use client';
+
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
+import { useAuth } from './providers';
 import type { Certification } from '@/types';
 
-async function getCertifications(): Promise<Certification[]> {
-  // This is a placeholder URL. In a real app, this should be an environment variable.
-  // The `fetch` call is made on the server-side during rendering.
-  // For the sandbox, I need to figure out the correct internal URL.
-  // Let's assume for now the app runs on localhost:3000.
-  // This might fail if the server isn't running, which it isn't during this 'build' phase.
-  // I will need to mock this data or find a way to run the server.
-  // For now, I will write the code as if the API is available.
-  // A better approach for now might be to return mock data.
+export default function HomePage() {
+  const [certifications, setCertifications] = useState<Certification[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
 
-  // Let's use mock data to avoid making a real fetch call that will fail.
-  const mockData: Certification[] = [
-      { id: 1, name: 'Adobe Certified Professional in Photoshop', description: 'Validate your expertise in Adobe Photoshop.', isAdobe: true },
-      { id: 2, name: 'Adobe Certified Professional in Illustrator', description: 'Showcase your skills in Adobe Illustrator.', isAdobe: true },
-      { id: 3, name: 'Certified JavaScript Developer', description: 'Test your knowledge of core JavaScript concepts.', isAdobe: false },
-  ];
-  return new Promise(resolve => setTimeout(() => resolve(mockData), 500));
+  useEffect(() => {
+    const fetchCertifications = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch('/api/certifications', { cache: 'no-store' });
+        if (!res.ok) {
+          throw new Error('Failed to fetch certifications');
+        }
+        const data = await res.json();
+        setCertifications(data);
+      } catch (e: any) {
+        setError(e.message);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  /*
-  const res = await fetch('http://localhost:3000/api/certifications', { cache: 'no-store' });
-  if (!res.ok) {
-    // This will be caught by the Error Boundary
-    throw new Error('Failed to fetch certifications');
-  }
-  return res.json();
-  */
-}
+    fetchCertifications();
+  }, []);
 
-export default async function HomePage() {
-  let certifications: Certification[] = [];
-  let error: string | null = null;
-  try {
-    certifications = await getCertifications();
-  } catch (e: any) {
-    error = e.message;
+  if (loading) {
+    return (
+      <main className="container mx-auto p-8 min-h-screen flex justify-center items-center">
+        <div className="text-center">
+          <div className="spinner-neon w-12 h-12 mx-auto mb-4"></div>
+          <div className="text-xl font-semibold text-glow-purple">Loading Certifications...</div>
+        </div>
+      </main>
+    );
   }
 
   return (
-    <main className="container mx-auto p-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-4xl font-bold">Select a Certification</h1>
-        <Link href="/login">
-          <span className="text-sm font-semibold text-blue-600 hover:underline">Admin Login</span>
-        </Link>
+    <main className="container mx-auto p-8 min-h-screen">
+      <div className="text-center mb-12">
+        <h1 className="text-5xl font-bold text-glow-purple pulse-glow mb-4">Study Certifications</h1>
+        <p className="text-xl text-gray-300">Choose a certification to start your learning journey</p>
       </div>
 
-      {error && <div className="text-red-500 bg-red-100 p-4 rounded-md">{error}</div>}
+      {error && (
+        <div className="text-red-400 bg-red-900/20 border border-red-500/30 p-4 rounded-lg mb-8 backdrop-blur-sm">
+          <div className="flex items-center">
+            <span className="text-red-400">⚠️</span>
+            <span className="ml-2">{error}</span>
+          </div>
+        </div>
+      )}
 
       {!error && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {certifications.map((cert) => (
-            <Link href={`/quiz/${cert.id}`} key={cert.id} className="block group">
-              <div className="p-6 bg-white rounded-lg border border-gray-200 shadow-md hover:bg-gray-50 h-full transition-all group-hover:shadow-lg">
-                <h2 className="mb-2 text-2xl font-bold tracking-tight text-gray-900">{cert.name}</h2>
-                <p className="font-normal text-gray-700 mb-4">{cert.description || 'No description available.'}</p>
-                {cert.isAdobe && <span className="inline-block bg-red-100 text-red-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded-full">Adobe</span>}
+            <div key={cert.id} className="card-dark p-8 rounded-xl h-full transition-all duration-300 group relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-orange-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="relative z-10">
+                <h2 className="mb-4 text-2xl font-bold tracking-tight text-glow-purple group-hover:text-glow-orange transition-all duration-300">
+                  {cert.name}
+                </h2>
+                <p className="font-normal text-gray-300 mb-6 leading-relaxed">
+                  {cert.description || 'No description available.'}
+                </p>
+                <div className="flex items-center justify-between">
+                  {cert.isAdobe && (
+                    <span className="inline-block bg-gradient-to-r from-red-500/20 to-orange-500/20 text-orange-300 text-xs font-semibold px-3 py-1 rounded-full border border-orange-500/30">
+                      Adobe Certified
+                    </span>
+                  )}
+                  {user ? (
+                    <Link href={`/quiz/${cert.id}`} className="text-purple-400 hover:text-orange-400 transition-colors duration-300 font-semibold">
+                      Start Quiz →
+                    </Link>
+                  ) : (
+                    <Link href="/auth" className="text-gray-500 hover:text-purple-400 transition-colors duration-300 font-semibold">
+                      Sign In to Start →
+                    </Link>
+                  )}
+                </div>
               </div>
-            </Link>
+            </div>
           ))}
         </div>
       )}

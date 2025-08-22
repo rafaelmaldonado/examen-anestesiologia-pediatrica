@@ -19,7 +19,7 @@ export async function GET(request: Request) {
         return NextResponse.json([]);
     }
 
-    const allQuestions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const allQuestions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[];
 
     // Fisher-Yates shuffle algorithm
     for (let i = allQuestions.length - 1; i > 0; i--) {
@@ -30,11 +30,11 @@ export async function GET(request: Request) {
     const randomQuestions = allQuestions.slice(0, count);
 
     // Exclude correct answer details before sending to client
-    const questionsForQuiz = randomQuestions.map(q => {
-        const optionsForQuiz = q.options.map((opt: any) => ({
+    const questionsForQuiz = randomQuestions.map((q: any) => {
+        const optionsForQuiz = q.options?.map((opt: any) => ({
             id: opt.id,
             optionText: opt.optionText,
-        }));
+        })) || [];
 
         return {
             id: q.id,

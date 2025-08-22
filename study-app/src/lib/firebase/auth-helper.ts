@@ -6,7 +6,8 @@ import { adminAuth } from './admin';
  * @returns The decoded user token if the session is valid, otherwise null.
  */
 export async function getVerifiedUser() {
-    const sessionCookie = cookies().get('session')?.value;
+    const cookieStore = await cookies();
+    const sessionCookie = cookieStore.get('session')?.value;
 
     if (!sessionCookie) {
         return null;

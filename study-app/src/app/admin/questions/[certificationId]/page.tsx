@@ -160,78 +160,180 @@ export default function QuestionsAdminPage() {
         reader.readAsText(jsonFile);
     };
 
-    if (loading) return <div className="text-center p-8">Loading...</div>;
-    if (error) return <div className="text-center p-8 text-red-500">{error}</div>;
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center h-screen">
+                <div className="text-center">
+                    <div className="spinner-neon w-12 h-12 mx-auto mb-4"></div>
+                    <div className="text-xl font-semibold text-glow-purple">Loading Questions...</div>
+                </div>
+            </div>
+        );
+    }
+    
+    if (error) {
+        return (
+            <div className="container mx-auto p-8">
+                <div className="text-red-400 bg-red-900/20 border border-red-500/30 p-4 rounded-lg">
+                    Error: {error}
+                </div>
+            </div>
+        );
+    }
 
     return (
-        <div className="container mx-auto p-8">
-            <Link href="/admin/certifications"><span className="text-blue-500 hover:underline">&larr; Back to Certifications</span></Link>
-            <h1 className="text-3xl font-bold my-4">Manage Questions for: <span className="text-blue-600">{certification?.name}</span></h1>
+        <div className="container mx-auto p-8 max-w-6xl min-h-screen">
+            <div className="flex justify-between items-center mb-8">
+                <div>
+                    <Link href="/admin/certifications" className="text-glow-orange hover:text-glow-cyan transition-all mb-2 inline-block">
+                        ← Back to Certifications
+                    </Link>
+                    <h1 className="text-3xl font-bold text-glow-purple">
+                        Questions for: <span className="text-glow-orange">{certification?.name}</span>
+                    </h1>
+                </div>
+            </div>
 
-            <div className="space-y-4 mb-8">
+            <div className="space-y-6 mb-8">
                 {questions.map((q, index) => (
-                    <div key={q.id} className="p-4 bg-white rounded-lg shadow">
+                    <div key={q.id} className="card-dark p-6 rounded-xl">
                         <div className="flex justify-between items-start">
-                            <div>
-                                <p className="font-bold text-lg text-black">{index + 1}. {q.questionText}</p>
-                                <ul className="list-disc pl-5 mt-2 text-sm">
+                            <div className="flex-1">
+                                <h3 className="font-bold text-lg text-gray-200 mb-4">
+                                    {index + 1}. {q.questionText}
+                                </h3>
+                                <div className="space-y-2">
                                     {q.options.map(opt => (
-                                        <li key={opt.id} className={opt.isCorrect ? 'font-bold text-green-600' : 'text-gray-700'}>{opt.optionText}</li>
+                                        <div 
+                                            key={opt.id} 
+                                            className={`p-3 rounded-lg border-2 ${
+                                                opt.isCorrect 
+                                                    ? 'border-green-400/50 bg-green-500/10 text-green-300' 
+                                                    : 'border-gray-500/30 bg-gray-600/10 text-gray-400'
+                                            }`}
+                                        >
+                                            <div className="flex items-center justify-between">
+                                                <span>{opt.optionText}</span>
+                                                {opt.isCorrect && (
+                                                    <span className="text-green-400 text-sm font-semibold">✓ Correct</span>
+                                                )}
+                                            </div>
+                                        </div>
                                     ))}
-                                </ul>
+                                </div>
                             </div>
                             <div className="space-x-2 flex-shrink-0">
-                                <button onClick={() => handleEdit(q)} className="bg-yellow-500 text-white py-1 px-3 rounded">Edit</button>
-                                <button onClick={() => handleDelete(q.id)} className="bg-red-500 text-white py-1 px-3 rounded">Delete</button>
+                                <button 
+                                    onClick={() => handleEdit(q)} 
+                                    className="btn-neon-orange px-4 py-2 rounded-lg hover:scale-105 transition-all"
+                                >
+                                    Edit
+                                </button>
+                                <button 
+                                    onClick={() => handleDelete(q.id)} 
+                                    className="bg-red-600/20 border border-red-500/50 text-red-300 px-4 py-2 rounded-lg hover:bg-red-500/30 hover:scale-105 transition-all"
+                                >
+                                    Delete
+                                </button>
                             </div>
                         </div>
                     </div>
                 ))}
             </div>
 
-            <hr className="my-12"/>
+            <div className="border-t border-gray-600/30 my-12"></div>
 
             <div className="mb-12">
-                <h2 className="text-2xl font-semibold mb-4">Bulk Import from JSON</h2>
-                <div className="p-6 bg-white rounded-lg shadow">
-                    <p className="text-sm text-gray-600 mb-2">Upload a JSON file with an array of questions. See README for schema.</p>
+                <h2 className="text-2xl font-semibold mb-4 text-glow-orange">Bulk Import from JSON</h2>
+                <div className="card-dark p-6 rounded-xl">
+                    <p className="text-sm text-gray-400 mb-4">Upload a JSON file with an array of questions. See README for schema.</p>
                     <input
                         type="file"
                         accept=".json"
                         onChange={(e) => setJsonFile(e.target.files ? e.target.files[0] : null)}
-                        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                        className="input-neon w-full mb-4 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-purple-600/20 file:text-purple-300 hover:file:bg-purple-500/30 file:transition-all"
                     />
                     <button
                         onClick={handleBulkImport}
                         disabled={!jsonFile || importing}
-                        className="mt-4 bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50"
+                        className="btn-neon-purple disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {importing ? 'Importing...' : 'Import Questions'}
                     </button>
-                    {importError && <p className="text-red-500 text-sm mt-2">{importError}</p>}
+                    {importError && <p className="text-red-400 text-sm mt-2">{importError}</p>}
                 </div>
             </div>
 
             <div>
-                <h2 className="text-2xl font-semibold mb-4">{isEditing ? 'Edit Question' : 'Add New Question'}</h2>
-                <form onSubmit={handleSubmit} className="p-6 bg-white rounded-lg shadow">
-                    <div className="mb-4">
-                        <label className="block text-sm font-bold mb-2 text-black">Question Text</label>
-                        <textarea value={questionText} onChange={e => setQuestionText(e.target.value)} className="w-full px-3 py-2 border rounded text-black" required />
+                <h2 className="text-2xl font-semibold mb-4 text-glow-purple">{isEditing ? 'Edit Question' : 'Add New Question'}</h2>
+                <form onSubmit={handleSubmit} className="card-dark p-6 rounded-xl">
+                    <div className="mb-6">
+                        <label className="block text-sm font-bold mb-2 text-gray-300">Question Text</label>
+                        <textarea 
+                            value={questionText} 
+                            onChange={e => setQuestionText(e.target.value)} 
+                            className="input-neon w-full h-24 resize-none" 
+                            placeholder="Enter your question here..."
+                            required 
+                        />
                     </div>
-                    <h3 className="text-lg font-semibold mb-2">Options</h3>
+                    <h3 className="text-lg font-semibold mb-4 text-glow-orange">Options</h3>
                     {options.map((opt, index) => (
-                        <div key={index} className="flex items-center space-x-2 mb-2 p-2 border rounded">
-                            <input type="radio" name="correct-option" checked={opt.isCorrect} onChange={() => handleCorrectChange(index)} className="form-radio h-5 w-5 text-blue-600"/>
-                            <input type="text" placeholder="Option text" value={opt.optionText} onChange={e => handleOptionChange(index, 'optionText', e.target.value)} className="w-full px-3 py-2 border rounded text-black" required />
-                            <input type="text" placeholder="Explanation (optional)" value={opt.explanation || ''} onChange={e => handleOptionChange(index, 'explanation', e.target.value)} className="w-full px-3 py-2 border rounded text-black" />
-                            <button type="button" onClick={() => removeOption(index)} className="bg-red-500 text-white py-1 px-2 rounded">&times;</button>
+                        <div key={index} className="flex items-center space-x-3 mb-4 p-4 border border-gray-600/30 rounded-lg bg-gray-700/20">
+                            <input 
+                                type="radio" 
+                                name="correct-option" 
+                                checked={opt.isCorrect} 
+                                onChange={() => handleCorrectChange(index)} 
+                                className="w-5 h-5 text-green-500 bg-gray-600 border-gray-500 focus:ring-green-500 focus:ring-2"
+                            />
+                            <input 
+                                type="text" 
+                                placeholder="Option text" 
+                                value={opt.optionText} 
+                                onChange={e => handleOptionChange(index, 'optionText', e.target.value)} 
+                                className="input-neon flex-1" 
+                                required 
+                            />
+                            <input 
+                                type="text" 
+                                placeholder="Explanation (optional)" 
+                                value={opt.explanation || ''} 
+                                onChange={e => handleOptionChange(index, 'explanation', e.target.value)} 
+                                className="input-neon flex-1" 
+                            />
+                            <button 
+                                type="button" 
+                                onClick={() => removeOption(index)} 
+                                className="bg-red-600/20 border border-red-500/50 text-red-300 py-2 px-3 rounded-lg hover:bg-red-500/30 hover:scale-105 transition-all"
+                            >
+                                ×
+                            </button>
                         </div>
                     ))}
-                    <button type="button" onClick={addOption} className="text-sm bg-gray-200 py-1 px-3 rounded mt-2">+ Add Option</button>
+                    <button 
+                        type="button" 
+                        onClick={addOption} 
+                        className="text-sm bg-gray-600/30 border border-gray-500/50 text-gray-300 py-2 px-4 rounded-lg hover:bg-gray-500/30 hover:scale-105 transition-all mb-6"
+                    >
+                        + Add Option
+                    </button>
                     <div className="flex justify-between mt-6">
-                        <button type="submit" className="bg-blue-500 text-white py-2 px-4 rounded">{isEditing ? 'Update Question' : 'Create Question'}</button>
-                        {isEditing && <button type="button" onClick={resetForm} className="bg-gray-300 text-black py-2 px-4 rounded">Cancel Edit</button>}
+                        <button 
+                            type="submit" 
+                            className="btn-neon-cyan"
+                        >
+                            {isEditing ? 'Update Question' : 'Create Question'}
+                        </button>
+                        {isEditing && (
+                            <button 
+                                type="button" 
+                                onClick={resetForm} 
+                                className="bg-gray-600/30 border border-gray-500/50 text-gray-300 py-2 px-6 rounded-lg hover:bg-gray-500/30 hover:scale-105 transition-all"
+                            >
+                                Cancel Edit
+                            </button>
+                        )}
                     </div>
                 </form>
             </div>

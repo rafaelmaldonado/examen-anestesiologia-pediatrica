@@ -4,13 +4,21 @@ import type { NextRequest } from 'next/server';
 export async function middleware(request: NextRequest) {
   const sessionCookie = request.cookies.get('session')?.value;
 
-  // If we are already on the login page, don't do anything
-  if (request.nextUrl.pathname === '/login') {
-    return NextResponse.next();
+  // If we are already on the auth page, don't do anything
+  if (request.nextUrl.pathname === '/auth') {
+    const response = NextResponse.next();
+    // Add security headers to help with storage access
+    response.headers.set('Permissions-Policy', 'storage-access=*');
+    response.headers.set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+    return response;
   }
 
   if (!sessionCookie) {
-    return NextResponse.redirect(new URL('/login', request.url));
+    const redirectResponse = NextResponse.redirect(new URL('/auth', request.url));
+    // Add security headers
+    redirectResponse.headers.set('Permissions-Policy', 'storage-access=*');
+    redirectResponse.headers.set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+    return redirectResponse;
   }
 
   // To avoid an infinite loop, we construct the verification URL making sure
@@ -27,22 +35,33 @@ export async function middleware(request: NextRequest) {
     // If the token is invalid, the API returns 401
     if (response.status !== 200) {
       // Clear the invalid cookie and redirect
-      const redirectResponse = NextResponse.redirect(new URL('/login', request.url));
+      const redirectResponse = NextResponse.redirect(new URL('/auth', request.url));
       redirectResponse.cookies.delete('session');
+      // Add security headers
+      redirectResponse.headers.set('Permissions-Policy', 'storage-access=*');
+      redirectResponse.headers.set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
       return redirectResponse;
     }
 
     // If token is valid, let the request through
-    return NextResponse.next();
+    const validResponse = NextResponse.next();
+    // Add security headers
+    validResponse.headers.set('Permissions-Policy', 'storage-access=*');
+    validResponse.headers.set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+    return validResponse;
 
   } catch (error) {
     console.error("Middleware fetch error:", error);
-    // In case of a network or other error, redirect to login as a fallback
-    return NextResponse.redirect(new URL('/login', request.url));
+    // In case of a network or other error, redirect to auth as a fallback
+    const errorResponse = NextResponse.redirect(new URL('/auth', request.url));
+    // Add security headers
+    errorResponse.headers.set('Permissions-Policy', 'storage-access=*');
+    errorResponse.headers.set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+    return errorResponse;
   }
 }
 
 // This middleware only runs on routes matching the matcher
 export const config = {
-  matcher: ['/admin/:path*'],
+  matcher: ['/admin/:path*', '/quiz/:path*'],
 };

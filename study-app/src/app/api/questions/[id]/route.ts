@@ -2,14 +2,10 @@ import { NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase/admin";
 import { getVerifiedUser } from "@/lib/firebase/auth-helper";
 
-interface Params {
-  params: { id: string };
-}
-
 import { randomUUID } from "crypto";
 
 // PUT to update a question and its options (admin only)
-export async function PUT(request: Request, { params }: Params) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getVerifiedUser();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -17,7 +13,7 @@ export async function PUT(request: Request, { params }: Params) {
 
   const { searchParams } = new URL(request.url);
   const certificationId = searchParams.get("certificationId");
-  const questionId = params.id;
+  const { id: questionId } = await params;
 
   if (!certificationId) {
     return NextResponse.json({ error: "certificationId is required in query parameters" }, { status: 400 });
@@ -50,7 +46,7 @@ export async function PUT(request: Request, { params }: Params) {
 }
 
 // DELETE a question (admin only)
-export async function DELETE(request: Request, { params }: Params) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getVerifiedUser();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -58,7 +54,7 @@ export async function DELETE(request: Request, { params }: Params) {
 
   const { searchParams } = new URL(request.url);
   const certificationId = searchParams.get("certificationId");
-  const questionId = params.id;
+  const { id: questionId } = await params;
 
   if (!certificationId) {
     return NextResponse.json({ error: "certificationId is required in query parameters" }, { status: 400 });

@@ -1,26 +1,285 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Dark theme colors with purple and orange accents */
+  --background: #0a0a0a;
+  --background-secondary: #1a1a2e;
+  --background-tertiary: #16213e;
+  --foreground: #e5e5e5;
+  --foreground-muted: #a0a0a0;
+  
+  /* Purple tones */
+  --purple-primary: #8b5cf6;
+  --purple-secondary: #a855f7;
+  --purple-dark: #7c3aed;
+  --purple-glow: rgba(139, 92, 246, 0.5);
+  
+  /* Orange tones */
+  --orange-primary: #f97316;
+  --orange-secondary: #fb923c;
+  --orange-dark: #ea580c;
+  --orange-glow: rgba(249, 115, 22, 0.5);
+  
+  /* Neon colors for glow effects */
+  --neon-purple: #bf7fff;
+  --neon-orange: #ff8533;
+  --neon-cyan: #00ffff;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* Remove light theme media query for consistent dark theme */
+body {
+  background: linear-gradient(135deg, var(--background) 0%, var(--background-secondary) 100%);
+  color: var(--foreground);
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* Neon glow text effects */
+.text-glow-purple {
+  color: var(--neon-purple);
+  text-shadow: 
+    0 0 5px var(--purple-glow),
+    0 0 10px var(--purple-glow),
+    0 0 15px var(--purple-glow),
+    0 0 20px var(--purple-glow);
+}
+
+.text-glow-orange {
+  color: var(--neon-orange);
+  text-shadow: 
+    0 0 5px var(--orange-glow),
+    0 0 10px var(--orange-glow),
+    0 0 15px var(--orange-glow),
+    0 0 20px var(--orange-glow);
+}
+
+.text-glow-cyan {
+  color: var(--neon-cyan);
+  text-shadow: 
+    0 0 5px rgba(0, 255, 255, 0.5),
+    0 0 10px rgba(0, 255, 255, 0.5),
+    0 0 15px rgba(0, 255, 255, 0.5),
+    0 0 20px rgba(0, 255, 255, 0.5);
+}
+
+/* Buttons with neon effects */
+.btn-neon-purple {
+  background: linear-gradient(45deg, var(--purple-dark), var(--purple-primary));
+  color: white;
+  border: 2px solid var(--purple-primary);
+  box-shadow: 
+    0 0 10px var(--purple-glow),
+    inset 0 0 10px rgba(139, 92, 246, 0.1);
+  transition: all 0.3s ease;
+}
+
+.btn-neon-purple:hover {
+  box-shadow: 
+    0 0 20px var(--purple-glow),
+    0 0 30px var(--purple-glow),
+    inset 0 0 20px rgba(139, 92, 246, 0.2);
+  transform: translateY(-2px);
+}
+
+.btn-neon-orange {
+  background: linear-gradient(45deg, var(--orange-dark), var(--orange-primary));
+  color: white;
+  border: 2px solid var(--orange-primary);
+  box-shadow: 
+    0 0 10px var(--orange-glow),
+    inset 0 0 10px rgba(249, 115, 22, 0.1);
+  transition: all 0.3s ease;
+}
+
+.btn-neon-orange:hover {
+  box-shadow: 
+    0 0 20px var(--orange-glow),
+    0 0 30px var(--orange-glow),
+    inset 0 0 20px rgba(249, 115, 22, 0.2);
+  transform: translateY(-2px);
+}
+
+/* Cards with dark theme */
+.card-dark {
+  background: linear-gradient(145deg, var(--background-secondary), var(--background-tertiary));
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(139, 92, 246, 0.1);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.card-dark:hover {
+  border-color: rgba(139, 92, 246, 0.4);
+  box-shadow: 
+    0 12px 40px rgba(0, 0, 0, 0.4),
+    0 0 20px rgba(139, 92, 246, 0.2);
+  transform: translateY(-4px);
+}
+
+/* Input fields with neon effects */
+.input-neon {
+  background: rgba(26, 26, 46, 0.8);
+  border: 2px solid rgba(139, 92, 246, 0.3);
+  color: var(--foreground);
+  transition: all 0.3s ease;
+}
+
+.input-neon:focus {
+  outline: none;
+  border-color: var(--purple-primary);
+  box-shadow: 
+    0 0 10px var(--purple-glow),
+    inset 0 0 10px rgba(139, 92, 246, 0.1);
+}
+
+/* Navigation bar styling */
+.nav-dark {
+  background: rgba(10, 10, 10, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(var(--purple-primary), var(--orange-primary));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(var(--purple-secondary), var(--orange-secondary));
+}
+
+/* Loading spinner with neon effect */
+.spinner-neon {
+  border: 3px solid rgba(139, 92, 246, 0.1);
+  border-top: 3px solid var(--purple-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  box-shadow: 0 0 20px var(--purple-glow);
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Pulsing glow animation */
+.pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes pulse-glow {
+  from {
+    text-shadow: 
+      0 0 5px var(--purple-glow),
+      0 0 10px var(--purple-glow),
+      0 0 15px var(--purple-glow);
+  }
+  to {
+    text-shadow: 
+      0 0 10px var(--purple-glow),
+      0 0 20px var(--purple-glow),
+      0 0 30px var(--purple-glow),
+      0 0 40px var(--purple-glow);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Selection styling */
+::selection {
+  background: var(--purple-glow);
+  color: white;
+}
+
+::-moz-selection {
+  background: var(--purple-glow);
+  color: white;
+}
+
+/* Floating animation for interactive elements */
+.float {
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+/* Gradient text effect */
+.gradient-text {
+  background: linear-gradient(45deg, var(--purple-primary), var(--orange-primary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Glassmorphism effect */
+.glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Enhanced loading states */
+.loading-dots::after {
+  content: '';
+  animation: loading-dots 1.5s infinite;
+}
+
+@keyframes loading-dots {
+  0% { content: ''; }
+  25% { content: '.'; }
+  50% { content: '..'; }
+  75% { content: '...'; }
+  100% { content: ''; }
+}
+
+/* Custom radio button styling */
+input[type="radio"] {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--purple-primary);
+  border-radius: 50%;
+  outline: none;
+  cursor: pointer;
+  position: relative;
+}
+
+input[type="radio"]:checked::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--purple-primary);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 10px var(--purple-glow);
+}
+
+/* Enhanced focus states */
+*:focus {
+  outline: 2px solid var(--purple-primary);
+  outline-offset: 2px;
+}
+
+/* Smooth transitions for all elements */
+* {
+  transition: color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }

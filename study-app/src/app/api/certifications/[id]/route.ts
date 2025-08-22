@@ -3,19 +3,15 @@ import { adminDb } from "@/lib/firebase/admin";
 import { getVerifiedUser } from "@/lib/firebase/auth-helper";
 import { deleteCollection } from "@/lib/firebase/firestore-helpers";
 
-interface Params {
-  params: { id: string };
-}
-
 // PUT to update a certification (admin only)
-export async function PUT(request: Request, { params }: Params) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getVerifiedUser();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
-    const id = params.id;
+    const { id } = await params;
     const body = await request.json();
     const { name, description, isAdobe } = body;
 
@@ -32,20 +28,21 @@ export async function PUT(request: Request, { params }: Params) {
 
     return NextResponse.json({ id, name, description, isAdobe });
   } catch (error) {
-    console.error(`Error updating certification ${params.id}:`, error);
+    const { id } = await params;
+    console.error(`Error updating certification ${id}:`, error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
 
 // DELETE a certification (admin only)
-export async function DELETE(request: Request, { params }: Params) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getVerifiedUser();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
-    const id = params.id;
+    const { id } = await params;
     const questionsPath = `certifications/${id}/questions`;
 
     // First, recursively delete the 'questions' subcollection
@@ -56,7 +53,8 @@ export async function DELETE(request: Request, { params }: Params) {
 
     return NextResponse.json({ message: "Certification and all its questions deleted successfully" });
   } catch (error) {
-    console.error(`Error deleting certification ${params.id}:`, error);
+    const { id } = await params;
+    console.error(`Error deleting certification ${id}:`, error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
