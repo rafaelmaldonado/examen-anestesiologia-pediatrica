@@ -53,6 +53,19 @@ export default function AdminPage() {
                   </div>
               </div>
             </Link>
+
+            <Link href="/admin/stats" className="block group">
+              <div className="card-dark p-8 rounded-xl h-full group-hover:scale-105 transition-all duration-300">
+                  <div className="flex items-center mb-4">
+                    <span className="text-3xl mr-4">📊</span>
+                    <h3 className="text-xl font-bold text-glow-purple">View Statistics</h3>
+                  </div>
+                  <p className="text-gray-300">See total questions per certification and platform stats.</p>
+                  <div className="mt-4 text-orange-400 group-hover:text-purple-400 transition-colors">
+                    View Stats →
+                  </div>
+              </div>
+            </Link>
         </div>
       </div>
 

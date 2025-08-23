@@ -120,16 +120,18 @@ export default function QuizPage() {
         <div className="space-y-4">
           {currentQuestion.options.map(opt => (
             <div key={opt.id}>
-              <label className="flex items-center p-5 rounded-xl border-2 border-purple-500/20 cursor-pointer transition-all hover:border-purple-500/40 has-[:checked]:border-purple-500 has-[:checked]:bg-purple-500/10 group">
-                <input
-                  type="radio"
-                  name={`question-${currentQuestion.id}`}
-                  value={opt.id}
-                  checked={userAnswers[currentQuestion.id] === opt.id}
-                  onChange={() => handleOptionSelect(currentQuestion.id, opt.id)}
-                  className="w-5 h-5 text-purple-500 bg-transparent border-2 border-purple-500/50 focus:ring-purple-500 focus:ring-2"
-                />
-                <span className="ml-4 text-lg text-gray-300 group-has-[:checked]:text-purple-300 group-hover:text-white transition-colors">
+              <label className="flex items-start p-4 sm:p-5 rounded-xl border-2 border-purple-500/20 cursor-pointer transition-all hover:border-purple-500/40 has-[:checked]:border-purple-500 has-[:checked]:bg-purple-500/10 group">
+                <div className="flex-shrink-0 mt-1">
+                  <input
+                    type="radio"
+                    name={`question-${currentQuestion.id}`}
+                    value={opt.id}
+                    checked={userAnswers[currentQuestion.id] === opt.id}
+                    onChange={() => handleOptionSelect(currentQuestion.id, opt.id)}
+                    className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500 bg-transparent border-2 border-purple-500/50 focus:ring-purple-500 focus:ring-2 focus:ring-offset-0"
+                  />
+                </div>
+                <span className="ml-3 sm:ml-4 text-base sm:text-lg text-gray-300 group-has-[:checked]:text-purple-300 group-hover:text-white transition-colors leading-relaxed">
                   {opt.optionText}
                 </span>
               </label>

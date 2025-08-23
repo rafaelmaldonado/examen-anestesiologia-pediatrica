@@ -4,7 +4,7 @@ import { adminDb } from "@/lib/firebase/admin";
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const certificationId = searchParams.get("certificationId");
-  const countStr = searchParams.get("count") || "10";
+  const countStr = searchParams.get("count") || "15"; // Default to 15 questions
   const count = parseInt(countStr, 10);
 
   if (!certificationId) {
@@ -27,7 +27,8 @@ export async function GET(request: Request) {
       [allQuestions[i], allQuestions[j]] = [allQuestions[j], allQuestions[i]];
     }
 
-    const randomQuestions = allQuestions.slice(0, count);
+    // Always use 15 questions for quiz
+    const randomQuestions = allQuestions.slice(0, 15);
 
     // Exclude correct answer details before sending to client
     const questionsForQuiz = randomQuestions.map((q: any) => {

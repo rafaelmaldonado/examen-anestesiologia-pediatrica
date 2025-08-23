@@ -3,6 +3,7 @@ import type { NextRequest } from 'next/server';
 
 export async function middleware(request: NextRequest) {
   const sessionCookie = request.cookies.get('session')?.value;
+  const isAdminRoute = request.nextUrl.pathname.startsWith('/admin');
 
   // If we are already on the auth page, don't do anything
   if (request.nextUrl.pathname === '/auth') {
@@ -41,6 +42,20 @@ export async function middleware(request: NextRequest) {
       redirectResponse.headers.set('Permissions-Policy', 'storage-access=*');
       redirectResponse.headers.set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
       return redirectResponse;
+    }
+
+    // If accessing admin routes, verify admin permissions
+    if (isAdminRoute) {
+      const userInfo = await response.json();
+      const adminEmail = process.env.ADMIN_EMAIL || 'admin@cert-3d7e6.com';
+      
+      if (userInfo.email !== adminEmail) {
+        // Redirect non-admin users to the main page
+        const redirectResponse = NextResponse.redirect(new URL('/', request.url));
+        redirectResponse.headers.set('Permissions-Policy', 'storage-access=*');
+        redirectResponse.headers.set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+        return redirectResponse;
+      }
     }
 
     // If token is valid, let the request through
