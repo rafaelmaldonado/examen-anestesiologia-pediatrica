@@ -8,7 +8,7 @@ import { safeJsonStorage } from '@/lib/storage-helper';
 export default function QuizPage() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [userAnswers, setUserAnswers] = useState<{ [key: string]: string }>({});
+  const [userAnswers, setUserAnswers] = useState<{ [key: string]: string | string[] }>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -41,16 +41,24 @@ export default function QuizPage() {
     }
   }, [certificationId]);
 
-  const handleOptionSelect = (questionId: string, optionId: string) => {
-    setUserAnswers({ ...userAnswers, [questionId]: optionId });
+  const handleOptionSelect = (questionId: string, optionId: string, isMultiSelect: boolean = false) => {
+    if (isMultiSelect) {
+      const currentAnswers = userAnswers[questionId] as string[] || [];
+      const newAnswers = currentAnswers.includes(optionId)
+        ? currentAnswers.filter(id => id !== optionId) // Remove if already selected
+        : [...currentAnswers, optionId]; // Add if not selected
+      setUserAnswers({ ...userAnswers, [questionId]: newAnswers });
+    } else {
+      setUserAnswers({ ...userAnswers, [questionId]: optionId });
+    }
   };
 
   const handleSubmit = async () => {
     setSubmitting(true);
     try {
-        const answersForApi = Object.entries(userAnswers).map(([questionId, selectedOptionId]) => ({
+        const answersForApi = Object.entries(userAnswers).map(([questionId, selectedOption]) => ({
             questionId,
-            selectedOptionId,
+            selectedOptionId: Array.isArray(selectedOption) ? selectedOption : [selectedOption],
         }));
 
         const res = await fetch('/api/results', {
@@ -92,6 +100,17 @@ export default function QuizPage() {
     </div>
   );
 
+  const isQuizComplete = () => {
+    return questions.every(question => {
+      const answer = userAnswers[question.id];
+      if (question.isMultiSelect) {
+        return Array.isArray(answer) && answer.length > 0;
+      } else {
+        return typeof answer === 'string' && answer.length > 0;
+      }
+    });
+  };
+
   const currentQuestion = questions[currentQuestionIndex];
 
   return (
@@ -117,26 +136,38 @@ export default function QuizPage() {
           {currentQuestion.questionText}
         </h2>
         
+        {currentQuestion.isMultiSelect && (
+          <div className="mb-4 text-yellow-400 text-sm font-medium">
+            ⚡ Select all correct answers (multiple selections allowed)
+          </div>
+        )}
+        
         <div className="space-y-4">
-          {currentQuestion.options.map(opt => (
-            <div key={opt.id}>
-              <label className="flex items-start p-4 sm:p-5 rounded-xl border-2 border-purple-500/20 cursor-pointer transition-all hover:border-purple-500/40 has-[:checked]:border-purple-500 has-[:checked]:bg-purple-500/10 group">
-                <div className="flex-shrink-0 mt-1">
-                  <input
-                    type="radio"
-                    name={`question-${currentQuestion.id}`}
-                    value={opt.id}
-                    checked={userAnswers[currentQuestion.id] === opt.id}
-                    onChange={() => handleOptionSelect(currentQuestion.id, opt.id)}
-                    className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500 bg-transparent border-2 border-purple-500/50 focus:ring-purple-500 focus:ring-2 focus:ring-offset-0"
-                  />
-                </div>
-                <span className="ml-3 sm:ml-4 text-base sm:text-lg text-gray-300 group-has-[:checked]:text-purple-300 group-hover:text-white transition-colors leading-relaxed">
-                  {opt.optionText}
-                </span>
-              </label>
-            </div>
-          ))}
+          {currentQuestion.options.map(opt => {
+            const isSelected = currentQuestion.isMultiSelect 
+              ? (userAnswers[currentQuestion.id] as string[] || []).includes(opt.id)
+              : userAnswers[currentQuestion.id] === opt.id;
+              
+            return (
+              <div key={opt.id}>
+                <label className="flex items-start p-4 sm:p-5 rounded-xl border-2 border-purple-500/20 cursor-pointer transition-all hover:border-purple-500/40 has-[:checked]:border-purple-500 has-[:checked]:bg-purple-500/10 group">
+                  <div className="flex-shrink-0 mt-1">
+                    <input
+                      type={currentQuestion.isMultiSelect ? "checkbox" : "radio"}
+                      name={`question-${currentQuestion.id}`}
+                      value={opt.id}
+                      checked={isSelected}
+                      onChange={() => handleOptionSelect(currentQuestion.id, opt.id, currentQuestion.isMultiSelect)}
+                      className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500 bg-transparent border-2 border-purple-500/50 focus:ring-purple-500 focus:ring-2 focus:ring-offset-0"
+                    />
+                  </div>
+                  <span className="ml-3 sm:ml-4 text-base sm:text-lg text-gray-300 group-has-[:checked]:text-purple-300 group-hover:text-white transition-colors leading-relaxed">
+                    {opt.optionText}
+                  </span>
+                </label>
+              </div>
+            );
+          })}
         </div>
       </div>
       
@@ -158,7 +189,7 @@ export default function QuizPage() {
         ) : (
             <button
                 onClick={handleSubmit}
-                disabled={submitting || Object.keys(userAnswers).length !== questions.length}
+                disabled={submitting || !isQuizComplete()}
                 className="btn-neon-orange font-bold py-3 px-8 rounded-xl disabled:opacity-30 disabled:cursor-not-allowed"
             >
                 {submitting ? (

@@ -17,6 +17,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing or invalid required fields" }, { status: 400 });
     }
 
+    if (!adminDb) {
+      return NextResponse.json({ error: "Database connection failed" }, { status: 500 });
+    }
+
     const collectionRef = adminDb.collection(`certifications/${certificationId}/questions`);
 
     // Use a batched write for efficiency
@@ -33,6 +37,7 @@ export async function POST(request: Request) {
 
         const newQuestionData = {
             questionText: question.questionText,
+            isMultiSelect: question.isMultiSelect || false,
             options: question.options.map((opt: any) => ({
                 id: randomUUID(),
                 optionText: opt.optionText || '',

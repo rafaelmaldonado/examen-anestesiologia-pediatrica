@@ -1,0 +1,82 @@
+{
+  "certificationName": "Multi-Select Demo Questions",
+  "isAdobe": true,
+  "description": "Sample questions demonstrating both single-select and multi-select functionality.",
+  "questions": [
+    {
+      "questionText": "Which of the following are primary components of Adobe Experience Manager?",
+      "isMultiSelect": true,
+      "options": [
+        {
+          "optionText": "Sites (WCM)",
+          "isCorrect": true,
+          "explanation": "AEM Sites is the web content management component."
+        },
+        {
+          "optionText": "Assets (DAM)",
+          "isCorrect": true,
+          "explanation": "AEM Assets is the digital asset management component."
+        },
+        {
+          "optionText": "Forms",
+          "isCorrect": true,
+          "explanation": "AEM Forms provides form creation and management capabilities."
+        },
+        {
+          "optionText": "Adobe Photoshop",
+          "isCorrect": false,
+          "explanation": "Photoshop is a separate Adobe product, not part of AEM."
+        }
+      ]
+    },
+    {
+      "questionText": "What is the primary purpose of AEM Dispatcher?",
+      "isMultiSelect": false,
+      "options": [
+        {
+          "optionText": "To create web pages",
+          "isCorrect": false
+        },
+        {
+          "optionText": "To provide caching and load balancing",
+          "isCorrect": true,
+          "explanation": "AEM Dispatcher is primarily used for caching and load balancing to improve performance."
+        },
+        {
+          "optionText": "To manage user permissions",
+          "isCorrect": false
+        },
+        {
+          "optionText": "To design templates",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "questionText": "Which of these are valid AEM author instance actions?",
+      "isMultiSelect": true,
+      "options": [
+        {
+          "optionText": "Creating pages",
+          "isCorrect": true,
+          "explanation": "Authors can create new pages in AEM."
+        },
+        {
+          "optionText": "Editing content",
+          "isCorrect": true,
+          "explanation": "Content editing is a primary author function."
+        },
+        {
+          "optionText": "Publishing content",
+          "isCorrect": true,
+          "explanation": "Authors can publish content from the author instance."
+        },
+        {
+          "optionText": "Serving live website traffic",
+          "isCorrect": false,
+          "explanation": "Author instances are not meant to serve live traffic - that's the publish instance role."
+        }
+      ]
+    }
+  ]
+}

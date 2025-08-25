@@ -17,6 +17,7 @@ export default function QuestionsAdminPage() {
     // Form state
     const [isEditing, setIsEditing] = useState<Question | null>(null);
     const [questionText, setQuestionText] = useState('');
+    const [isMultiSelect, setIsMultiSelect] = useState(false);
     const [options, setOptions] = useState<AdminOption[]>([
         { id: 'new1', optionText: '', isCorrect: true, explanation: '' },
         { id: 'new2', optionText: '', isCorrect: false, explanation: '' },
@@ -59,7 +60,15 @@ export default function QuestionsAdminPage() {
     };
 
     const handleCorrectChange = (index: number) => {
-        setOptions(options.map((opt, i) => ({ ...opt, isCorrect: i === index })));
+        if (isMultiSelect) {
+            // For multi-select, toggle the option
+            const newOptions = [...options];
+            newOptions[index].isCorrect = !newOptions[index].isCorrect;
+            setOptions(newOptions);
+        } else {
+            // For single-select, only one option can be correct
+            setOptions(options.map((opt, i) => ({ ...opt, isCorrect: i === index })));
+        }
     };
 
     const addOption = () => setOptions([...options, { id: `new${options.length + 1}`, optionText: '', isCorrect: false, explanation: '' }]);
@@ -76,7 +85,7 @@ export default function QuestionsAdminPage() {
         e.preventDefault();
         const url = isEditing ? `/api/questions/${isEditing.id}?certificationId=${certificationId}` : `/api/questions`;
         const method = isEditing ? 'PUT' : 'POST';
-        const body = { certificationId, questionText, questionOptions: options };
+        const body = { certificationId, questionText, isMultiSelect, questionOptions: options };
 
         try {
             const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
@@ -91,6 +100,7 @@ export default function QuestionsAdminPage() {
     const handleEdit = (q: Question) => {
         setIsEditing(q);
         setQuestionText(q.questionText);
+        setIsMultiSelect(q.isMultiSelect || false);
         setOptions(q.options);
         window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
     };
@@ -109,6 +119,7 @@ export default function QuestionsAdminPage() {
     const resetForm = () => {
         setIsEditing(null);
         setQuestionText('');
+        setIsMultiSelect(false);
         setOptions([
             { id: 'new1', optionText: '', isCorrect: true, explanation: '' },
             { id: 'new2', optionText: '', isCorrect: false, explanation: '' },
@@ -201,6 +212,11 @@ export default function QuestionsAdminPage() {
                             <div className="flex-1">
                                 <h3 className="font-bold text-lg text-gray-200 mb-4">
                                     {index + 1}. {q.questionText}
+                                    {q.isMultiSelect && (
+                                        <span className="ml-2 text-sm font-normal text-yellow-400 bg-yellow-400/10 px-2 py-1 rounded">
+                                            Multi-select
+                                        </span>
+                                    )}
                                 </h3>
                                 <div className="space-y-2">
                                     {q.options.map(opt => (
@@ -277,12 +293,33 @@ export default function QuestionsAdminPage() {
                             required 
                         />
                     </div>
-                    <h3 className="text-lg font-semibold mb-4 text-glow-orange">Options</h3>
+                    
+                    <div className="mb-6">
+                        <label className="flex items-center space-x-3 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={isMultiSelect}
+                                onChange={(e) => setIsMultiSelect(e.target.checked)}
+                                className="w-5 h-5 text-purple-500 bg-gray-600 border-gray-500 rounded focus:ring-purple-500 focus:ring-2"
+                            />
+                            <span className="text-sm font-bold text-gray-300">
+                                Allow multiple correct answers (Multi-select question)
+                            </span>
+                        </label>
+                        {isMultiSelect && (
+                            <p className="text-xs text-yellow-400 mt-2">
+                                ⚡ Students will need to select ALL correct answers to get this question right.
+                            </p>
+                        )}
+                    </div>
+                    <h3 className="text-lg font-semibold mb-4 text-glow-orange">
+                        Options {isMultiSelect && <span className="text-sm text-yellow-400">(Multiple correct answers allowed)</span>}
+                    </h3>
                     {options.map((opt, index) => (
                         <div key={index} className="flex items-center space-x-3 mb-4 p-4 border border-gray-600/30 rounded-lg bg-gray-700/20">
                             <input 
-                                type="radio" 
-                                name="correct-option" 
+                                type={isMultiSelect ? "checkbox" : "radio"}
+                                name={isMultiSelect ? undefined : "correct-option"}
                                 checked={opt.isCorrect} 
                                 onChange={() => handleCorrectChange(index)} 
                                 className="w-5 h-5 text-green-500 bg-gray-600 border-gray-500 focus:ring-green-500 focus:ring-2"

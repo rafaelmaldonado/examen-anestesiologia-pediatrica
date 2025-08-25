@@ -5,7 +5,7 @@ import * as admin from 'firebase-admin';
 
 interface UserAnswer {
   questionId: string; // Firestore IDs are strings
-  selectedOptionId: string;
+  selectedOptionId: string[]; // Changed to array to support multi-select
 }
 
 // POST to submit quiz results and get the score
@@ -39,6 +39,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid question IDs" }, { status: 400 });
     }
 
+    if (!adminDb) {
+      return NextResponse.json({ error: "Database connection failed" }, { status: 500 });
+    }
+
     // Fetch the questions the user answered
     const questionsRef = adminDb.collection(`certifications/${certificationId}/questions`);
     const questionsSnapshot = await questionsRef.where(admin.firestore.FieldPath.documentId(), 'in', questionIds).get();
@@ -52,8 +56,23 @@ export async function POST(request: Request) {
         return null;
       }
 
-      const correctOption = question.options?.find((opt: any) => opt.isCorrect);
-      const isUserCorrect = correctOption?.id === userAnswer.selectedOptionId;
+      const correctOptions = question.options?.filter((opt: any) => opt.isCorrect) || [];
+      const correctOptionIds: string[] = correctOptions.map((opt: any) => opt.id);
+      
+      let isUserCorrect = false;
+      
+      if (question.isMultiSelect) {
+        // For multi-select: user must select ALL correct options and NO incorrect ones
+        const userSelectedIds = userAnswer.selectedOptionId;
+        const hasAllCorrect = correctOptionIds.every((id: string) => userSelectedIds.includes(id));
+        const hasNoIncorrect = userSelectedIds.every((id: string) => correctOptionIds.includes(id));
+        isUserCorrect = hasAllCorrect && hasNoIncorrect && correctOptionIds.length > 0;
+      } else {
+        // For single-select: user must select the one correct option
+        const correctOption = correctOptions[0];
+        isUserCorrect = correctOption && userAnswer.selectedOptionId.includes(correctOption.id);
+      }
+      
       if (isUserCorrect) {
         correctCount++;
       }
@@ -62,21 +81,24 @@ export async function POST(request: Request) {
         questionId: userAnswer.questionId,
         questionText: question.questionText || 'Question text not found',
         selectedOptionId: userAnswer.selectedOptionId,
-        correctOption: correctOption,
+        correctOptions: correctOptions,
         allOptions: question.options || [],
         isCorrect: isUserCorrect,
+        isMultiSelect: question.isMultiSelect || false,
       };
     }).filter(Boolean);
 
     const score = Math.round((correctCount / answers.length) * 100);
 
     // Save the result to the database
-    await adminDb.collection("testResults").add({
-      userId,
-      certificationId,
-      score,
-      createdAt: new Date(),
-    });
+    if (adminDb) {
+      await adminDb.collection("testResults").add({
+        userId,
+        certificationId,
+        score,
+        createdAt: new Date(),
+      });
+    }
 
     return NextResponse.json({
       score,

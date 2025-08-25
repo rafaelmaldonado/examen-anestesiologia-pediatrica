@@ -27,4 +27,5 @@ export interface Question {
     id: string;
     questionText: string;
     options: AdminOption[];
+    isMultiSelect?: boolean; // New field to indicate if multiple answers are allowed
 }

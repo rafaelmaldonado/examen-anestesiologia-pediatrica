@@ -12,9 +12,12 @@ export async function GET(request: Request) {
   }
 
   try {
-    const snapshot = await adminDb.collection(`certifications/${certificationId}/questions`).get();
-    const questions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    return NextResponse.json(questions);
+    if (adminDb) {
+      const snapshot = await adminDb.collection(`certifications/${certificationId}/questions`).get();
+      const questions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      return NextResponse.json(questions);
+    }
+    return NextResponse.json([]);
   } catch (error) {
     console.error("Error fetching questions:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
@@ -32,7 +35,7 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { certificationId, questionText, questionOptions } = body;
+    const { certificationId, questionText, isMultiSelect, questionOptions } = body;
 
     if (!certificationId || !questionText || !questionOptions || !Array.isArray(questionOptions) || questionOptions.length === 0) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -40,15 +43,19 @@ export async function POST(request: Request) {
 
     const newQuestionData = {
         questionText,
+        isMultiSelect: isMultiSelect || false,
         options: questionOptions.map((opt: any) => ({
             ...opt,
             id: randomUUID(), // Add a unique ID to each option
         })),
     };
 
-    const docRef = await adminDb.collection(`certifications/${certificationId}/questions`).add(newQuestionData);
+    if (adminDb) {
+      const docRef = await adminDb.collection(`certifications/${certificationId}/questions`).add(newQuestionData);
+      return NextResponse.json({ id: docRef.id, ...newQuestionData }, { status: 201 });
+    }
 
-    return NextResponse.json({ id: docRef.id, ...newQuestionData }, { status: 201 });
+    return NextResponse.json({ error: "Database connection failed" }, { status: 500 });
 
   } catch (error) {
     console.error("Error creating question:", error);

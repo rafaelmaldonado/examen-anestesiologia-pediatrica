@@ -21,7 +21,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
   try {
     const body = await request.json();
-    const { questionText, questionOptions } = body;
+    const { questionText, isMultiSelect, questionOptions } = body;
 
     if (!questionText || !questionOptions || !Array.isArray(questionOptions) || questionOptions.length === 0) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -32,13 +32,16 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         id: opt.id || randomUUID(), // Add ID if it doesn't exist
     }));
 
-    const docRef = adminDb.collection(`certifications/${certificationId}/questions`).doc(questionId);
-    await docRef.update({
-        questionText,
-        options: updatedOptions,
-    });
+    if (adminDb) {
+      const docRef = adminDb.collection(`certifications/${certificationId}/questions`).doc(questionId);
+      await docRef.update({
+          questionText,
+          isMultiSelect: isMultiSelect || false,
+          options: updatedOptions,
+      });
+    }
 
-    return NextResponse.json({ id: questionId, questionText, options: updatedOptions });
+    return NextResponse.json({ id: questionId, questionText, isMultiSelect: isMultiSelect || false, options: updatedOptions });
   } catch (error) {
     console.error(`Error updating question ${questionId}:`, error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
@@ -61,7 +64,9 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
   }
 
   try {
-    await adminDb.collection(`certifications/${certificationId}/questions`).doc(questionId).delete();
+    if (adminDb) {
+      await adminDb.collection(`certifications/${certificationId}/questions`).doc(questionId).delete();
+    }
     return NextResponse.json({ message: "Question deleted successfully" });
   } catch (error) {
     console.error(`Error deleting question ${questionId}:`, error);

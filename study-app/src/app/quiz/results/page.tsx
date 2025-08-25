@@ -7,18 +7,18 @@ import { safeJsonStorage } from '@/lib/storage-helper';
 
 // Define a more specific type for the results data
 interface ResultDetails {
-    questionId: number;
+    questionId: string;
     questionText: string;
-    selectedOptionId: number;
-    correctOption: {
-        id: number;
-        questionId: number;
+    selectedOptionId: string[]; // Changed to array for multi-select support
+    correctOptions: Array<{
+        id: string;
         optionText: string;
         isCorrect: boolean;
-        explanation: string | null;
-    };
+        explanation?: string | null;
+    }>;
     isCorrect: boolean;
     allOptions: any[];
+    isMultiSelect?: boolean;
 }
 
 interface ResultsData {
@@ -96,17 +96,22 @@ export default function ResultsPage() {
                     <div key={res.questionId} className="card-dark p-6 rounded-xl">
                         <h3 className="font-bold text-xl mb-4 text-gray-200">
                             Question {index + 1}: {res.questionText}
+                            {res.isMultiSelect && (
+                                <span className="ml-2 text-sm font-normal text-yellow-400">
+                                    (Multi-select)
+                                </span>
+                            )}
                         </h3>
 
                         <div className="space-y-3">
                             {res.allOptions.map((opt) => {
-                                const isSelected = opt.id === res.selectedOptionId;
-                                const isCorrect = opt.id === res.correctOption.id;
+                                const isSelected = res.selectedOptionId.includes(opt.id);
+                                const isCorrect = res.correctOptions.some(correctOpt => correctOpt.id === opt.id);
 
                                 let itemClass = 'p-4 rounded-lg border-2 transition-all';
                                 if (isCorrect) {
                                     itemClass += ' bg-green-500/20 border-green-400 text-green-300';
-                                } else if (isSelected && !res.isCorrect) {
+                                } else if (isSelected && !isCorrect) {
                                     itemClass += ' bg-red-500/20 border-red-400 text-red-300';
                                 } else {
                                     itemClass += ' bg-gray-600/20 border-gray-500 text-gray-300';
@@ -134,10 +139,10 @@ export default function ResultsPage() {
                             })}
                         </div>
 
-                        {!res.isCorrect && res.correctOption.explanation && (
+                        {!res.isCorrect && res.correctOptions.length > 0 && res.correctOptions[0].explanation && (
                             <div className="mt-4 p-4 bg-yellow-500/20 border border-yellow-400/30 text-yellow-300 rounded-lg">
                                 <h4 className="font-bold mb-2 text-yellow-200">💡 Explanation:</h4>
-                                <p>{res.correctOption.explanation}</p>
+                                <p>{res.correctOptions[0].explanation}</p>
                             </div>
                         )}
                     </div>
