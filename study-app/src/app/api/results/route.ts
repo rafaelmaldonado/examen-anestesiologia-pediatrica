@@ -90,6 +90,18 @@ export async function POST(request: Request) {
 
     const score = Math.round((correctCount / answers.length) * 100);
 
+    // Fetch certification details
+    let certificationName = '';
+    try {
+      const certificationSnapshot = await adminDb.collection("certifications").doc(certificationId).get();
+      if (certificationSnapshot.exists) {
+        const certificationData = certificationSnapshot.data();
+        certificationName = certificationData?.name || '';
+      }
+    } catch (error) {
+      console.error('Error fetching certification details:', error);
+    }
+
     // Save the result to the database
     if (adminDb) {
       await adminDb.collection("testResults").add({
@@ -103,6 +115,8 @@ export async function POST(request: Request) {
     return NextResponse.json({
       score,
       results: resultsWithExplanations,
+      certificationId,
+      certificationName,
     });
 
   } catch (error) {

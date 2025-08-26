@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/app/providers';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import AdminGuard from '@/components/AdminGuard';
+import StarRating from '@/components/StarRating';
 
 interface Certification {
   id: string;
@@ -16,6 +18,8 @@ interface CertificationStats {
   name: string;
   description: string;
   questionCount: number;
+  averageRating?: number;
+  totalRatings?: number;
 }
 
 export default function AdminStatsPage() {
@@ -41,13 +45,28 @@ export default function AdminStatsPage() {
       const certsResponse = await fetch('/api/certifications');
       const certifications: Certification[] = await certsResponse.json();
 
-      // Fetch question counts for each certification
+      // Fetch question counts and ratings for each certification
       const statsPromises = certifications.map(async (cert) => {
-        const questionsResponse = await fetch(`/api/questions?certificationId=${cert.id}`);
+        const [questionsResponse, ratingsResponse] = await Promise.all([
+          fetch(`/api/questions?certificationId=${cert.id}`),
+          fetch(`/api/ratings?certificationId=${cert.id}`)
+        ]);
+        
         const questions = await questionsResponse.json();
+        let averageRating = 0;
+        let totalRatings = 0;
+        
+        if (ratingsResponse.ok) {
+          const ratingsData = await ratingsResponse.json();
+          averageRating = ratingsData.stats?.averageRating || 0;
+          totalRatings = ratingsData.stats?.totalRatings || 0;
+        }
+        
         return {
           ...cert,
-          questionCount: questions.length
+          questionCount: questions.length,
+          averageRating,
+          totalRatings
         };
       });
 
@@ -78,7 +97,8 @@ export default function AdminStatsPage() {
   const totalQuestions = stats.reduce((sum, cert) => sum + cert.questionCount, 0);
 
   return (
-    <div className="container mx-auto p-8 min-h-screen">
+    <AdminGuard>
+      <div className="container mx-auto p-8 min-h-screen">
       <div className="flex justify-between items-center mb-8">
         <div>
           <Link href="/admin" className="text-purple-400 hover:text-orange-400 transition-colors mb-2 inline-block">
@@ -121,6 +141,19 @@ export default function AdminStatsPage() {
                   <span className="text-lg font-semibold text-glow-purple">
                     {cert.questionCount} questions
                   </span>
+                  {cert.totalRatings && cert.totalRatings > 0 && (
+                    <div className="flex items-center space-x-2">
+                      <StarRating 
+                        rating={cert.averageRating || 0} 
+                        readonly 
+                        size="sm" 
+                        showText={false}
+                      />
+                      <span className="text-sm text-gray-400">
+                        {cert.averageRating?.toFixed(1)} ({cert.totalRatings})
+                      </span>
+                    </div>
+                  )}
                   <Link 
                     href={`/admin/questions/${cert.id}`}
                     className="btn-secondary text-sm"
@@ -133,6 +166,14 @@ export default function AdminStatsPage() {
                 <div className="text-right">
                   <div className="text-2xl font-bold text-glow-blue">{cert.questionCount}</div>
                   <div className="text-sm text-gray-400">questions</div>
+                  {cert.totalRatings && cert.totalRatings > 0 && (
+                    <div className="mt-2">
+                      <div className="text-lg font-bold text-yellow-400">
+                        {cert.averageRating?.toFixed(1)}⭐
+                      </div>
+                      <div className="text-xs text-gray-500">{cert.totalRatings} ratings</div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -152,5 +193,6 @@ export default function AdminStatsPage() {
         ))}
       </div>
     </div>
+    </AdminGuard>
   );
 }

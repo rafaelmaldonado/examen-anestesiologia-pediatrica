@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase/admin";
-import { getVerifiedUser } from "@/lib/firebase/auth-helper";
+import { getVerifiedUser, getVerifiedAdmin } from "@/lib/firebase/auth-helper";
 
 // GET all questions for a specific certification
 export async function GET(request: Request) {
@@ -28,9 +28,9 @@ import { randomUUID } from "crypto";
 
 // POST a new question with its options (admin only)
 export async function POST(request: Request) {
-  const user = await getVerifiedUser();
+  const user = await getVerifiedAdmin();
   if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized - Admin access required" }, { status: 401 });
   }
 
   try {

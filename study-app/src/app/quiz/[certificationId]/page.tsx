@@ -30,6 +30,7 @@ export default function QuizPage() {
           if (data.length === 0) {
             throw new Error("No questions found for this certification.");
           }
+          console.log('Quiz questions loaded:', data); // Debug
           setQuestions(data);
         } catch (err: any) {
           setError(err.message);
@@ -42,11 +43,13 @@ export default function QuizPage() {
   }, [certificationId]);
 
   const handleOptionSelect = (questionId: string, optionId: string, isMultiSelect: boolean = false) => {
+    console.log('handleOptionSelect:', { questionId, optionId, isMultiSelect }); // Debug
     if (isMultiSelect) {
       const currentAnswers = userAnswers[questionId] as string[] || [];
       const newAnswers = currentAnswers.includes(optionId)
         ? currentAnswers.filter(id => id !== optionId) // Remove if already selected
         : [...currentAnswers, optionId]; // Add if not selected
+      console.log('Multi-select answers:', { currentAnswers, newAnswers }); // Debug
       setUserAnswers({ ...userAnswers, [questionId]: newAnswers });
     } else {
       setUserAnswers({ ...userAnswers, [questionId]: optionId });
@@ -132,13 +135,29 @@ export default function QuizPage() {
           </div>
         </div>
         
-        <h2 className="text-2xl font-semibold mb-8 text-gray-100 leading-relaxed">
+        <h2 className="text-2xl font-semibold mb-4 text-gray-100 leading-relaxed">
           {currentQuestion.questionText}
         </h2>
         
-        {currentQuestion.isMultiSelect && (
-          <div className="mb-4 text-yellow-400 text-sm font-medium">
-            ⚡ Select all correct answers (multiple selections allowed)
+        {currentQuestion.isMultiSelect ? (
+          <div className="mb-6 p-4 bg-yellow-500/20 border border-yellow-400/30 rounded-lg">
+            <div className="flex items-center text-yellow-300">
+              <span className="text-2xl mr-3">☑️</span>
+              <div>
+                <div className="font-bold text-yellow-200">Multiple Choice Question</div>
+                <div className="text-sm">Select ALL correct answers. You can choose more than one option.</div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="mb-6 p-4 bg-blue-500/20 border border-blue-400/30 rounded-lg">
+            <div className="flex items-center text-blue-300">
+              <span className="text-2xl mr-3">🔘</span>
+              <div>
+                <div className="font-bold text-blue-200">Single Choice Question</div>
+                <div className="text-sm">Select the ONE best answer.</div>
+              </div>
+            </div>
           </div>
         )}
         

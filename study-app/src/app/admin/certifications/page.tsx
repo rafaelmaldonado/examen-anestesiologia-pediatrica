@@ -3,6 +3,7 @@
 import { useState, useEffect, FormEvent } from 'react';
 import type { Certification } from '@/types';
 import Link from 'next/link';
+import AdminGuard from '@/components/AdminGuard';
 
 export default function CertificationsAdminPage() {
     const [certifications, setCertifications] = useState<Certification[]>([]);
@@ -82,7 +83,8 @@ export default function CertificationsAdminPage() {
     };
 
     return (
-        <div className="container mx-auto p-8 max-w-6xl min-h-screen">
+        <AdminGuard>
+            <div className="container mx-auto p-8 max-w-6xl min-h-screen">
             <div className="flex justify-between items-center mb-8">
                 <div>
                     <h1 className="text-3xl font-bold text-glow-purple mb-2">Manage Certifications</h1>
@@ -205,5 +207,6 @@ export default function CertificationsAdminPage() {
                 </div>
             </div>
         </div>
+        </AdminGuard>
     );
 }

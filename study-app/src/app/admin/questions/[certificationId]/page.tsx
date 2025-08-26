@@ -4,6 +4,7 @@ import { useState, useEffect, FormEvent } from 'react';
 import { useParams } from 'next/navigation';
 import type { Certification, Question, AdminOption } from '@/types';
 import Link from 'next/link';
+import AdminGuard from '@/components/AdminGuard';
 
 export default function QuestionsAdminPage() {
     const params = useParams();
@@ -193,7 +194,8 @@ export default function QuestionsAdminPage() {
     }
 
     return (
-        <div className="container mx-auto p-8 max-w-6xl min-h-screen">
+        <AdminGuard>
+            <div className="container mx-auto p-8 max-w-6xl min-h-screen">
             <div className="flex justify-between items-center mb-8">
                 <div>
                     <Link href="/admin/certifications" className="text-glow-orange hover:text-glow-cyan transition-all mb-2 inline-block">
@@ -375,5 +377,6 @@ export default function QuestionsAdminPage() {
                 </form>
             </div>
         </div>
+        </AdminGuard>
     );
 }

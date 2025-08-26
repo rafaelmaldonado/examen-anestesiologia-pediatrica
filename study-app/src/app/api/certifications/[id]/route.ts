@@ -1,13 +1,34 @@
 import { NextResponse } from "next/server";
 import { checkFirebaseAdmin } from "@/lib/firebase/admin-helpers";
-import { getVerifiedUser } from "@/lib/firebase/auth-helper";
+import { getVerifiedAdmin } from "@/lib/firebase/auth-helper";
 import { deleteCollection } from "@/lib/firebase/firestore-helpers";
+
+// GET a single certification (publicly accessible)
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const { adminDb } = checkFirebaseAdmin();
+    const { id } = await params;
+
+    const docRef = adminDb.collection("certifications").doc(id);
+    const doc = await docRef.get();
+
+    if (!doc.exists) {
+      return NextResponse.json({ error: "Certification not found" }, { status: 404 });
+    }
+
+    const data = doc.data();
+    return NextResponse.json({ id: doc.id, ...data });
+  } catch (error) {
+    console.error("Error fetching certification:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  }
+}
 
 // PUT to update a certification (admin only)
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const user = await getVerifiedUser();
+  const user = await getVerifiedAdmin();
   if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized - Admin access required" }, { status: 401 });
   }
 
   try {
@@ -37,9 +58,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
 // DELETE a certification (admin only)
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const user = await getVerifiedUser();
+  const user = await getVerifiedAdmin();
   if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized - Admin access required" }, { status: 401 });
   }
 
   try {

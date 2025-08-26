@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase/admin";
-import { getVerifiedUser } from "@/lib/firebase/auth-helper";
+import { getVerifiedAdmin } from "@/lib/firebase/auth-helper";
 
 import { randomUUID } from "crypto";
 
 // PUT to update a question and its options (admin only)
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const user = await getVerifiedUser();
+  const user = await getVerifiedAdmin();
   if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized - Admin access required" }, { status: 401 });
   }
 
   const { searchParams } = new URL(request.url);
@@ -50,9 +50,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
 // DELETE a question (admin only)
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const user = await getVerifiedUser();
+  const user = await getVerifiedAdmin();
   if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized - Admin access required" }, { status: 401 });
   }
 
   const { searchParams } = new URL(request.url);

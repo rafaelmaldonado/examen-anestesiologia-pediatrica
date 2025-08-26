@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { safeJsonStorage } from '@/lib/storage-helper';
+import RatingForm from '@/components/RatingForm';
+import type { Certification } from '@/types';
 
 // Define a more specific type for the results data
 interface ResultDetails {
@@ -24,25 +26,80 @@ interface ResultDetails {
 interface ResultsData {
     score: number;
     results: ResultDetails[];
+    certificationId?: string;
+    certificationName?: string;
 }
 
 export default function ResultsPage() {
     const [results, setResults] = useState<ResultsData | null>(null);
     const [loading, setLoading] = useState(true);
+    const [showRatingForm, setShowRatingForm] = useState(false);
+    const [isSubmittingRating, setIsSubmittingRating] = useState(false);
+    const [certification, setCertification] = useState<Certification | null>(null);
     const router = useRouter();
 
     useEffect(() => {
+        const loadData = async () => {
+            try {
+                const resultsData = safeJsonStorage.getItem<ResultsData>('quizResults');
+                if (resultsData) {
+                    setResults(resultsData);
+                    
+                    // If we have certification info, fetch the full certification details
+                    if (resultsData.certificationId) {
+                        try {
+                            const response = await fetch(`/api/certifications/${resultsData.certificationId}`);
+                            if (response.ok) {
+                                const certData = await response.json();
+                                setCertification(certData);
+                            }
+                        } catch (error) {
+                            console.error('Error fetching certification details:', error);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading quiz results:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadData();
+    }, []);
+
+    const handleRatingSubmit = async (rating: number, comment: string) => {
+        if (!results?.certificationId) return;
+
+        setIsSubmittingRating(true);
         try {
-            const resultsData = safeJsonStorage.getItem<ResultsData>('quizResults');
-            if (resultsData) {
-                setResults(resultsData);
+            const response = await fetch('/api/ratings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    certificationId: results.certificationId,
+                    rating,
+                    comment,
+                }),
+            });
+
+            if (response.ok) {
+                setShowRatingForm(false);
+                // You could show a success message here
+                alert('Thank you for your rating!');
+            } else {
+                const errorData = await response.json();
+                alert(`Error submitting rating: ${errorData.error}`);
             }
         } catch (error) {
-            console.error('Error loading quiz results:', error);
+            console.error('Error submitting rating:', error);
+            alert('Error submitting rating. Please try again.');
         } finally {
-            setLoading(false);
+            setIsSubmittingRating(false);
         }
-    }, []);
+    };
 
     if (loading) {
         return (
@@ -89,6 +146,21 @@ export default function ResultsPage() {
                 <p className="text-gray-400">
                     {results.score >= 75 ? '🎉 Congratulations! You passed!' : '📚 Keep studying and try again!'}
                 </p>
+                
+                {/* Rating Button - only show if we have certification info and passed */}
+                {certification && results.score >= 75 && (
+                    <div className="mt-6 pt-6 border-t border-gray-700">
+                        <button
+                            onClick={() => setShowRatingForm(true)}
+                            className="btn-neon-orange font-bold py-3 px-6 rounded-lg text-lg hover:scale-105 transition-transform"
+                        >
+                            ⭐ Rate This Certification
+                        </button>
+                        <p className="text-sm text-gray-400 mt-2">
+                            Help others by sharing your experience
+                        </p>
+                    </div>
+                )}
             </div>
 
             <div className="space-y-6">
@@ -163,6 +235,16 @@ export default function ResultsPage() {
                     </Link>
                 </div>
             </div>
+
+            {/* Rating Form Modal */}
+            {showRatingForm && certification && (
+                <RatingForm
+                    certification={certification}
+                    onSubmit={handleRatingSubmit}
+                    onCancel={() => setShowRatingForm(false)}
+                    isSubmitting={isSubmittingRating}
+                />
+            )}
         </div>
     );
 }

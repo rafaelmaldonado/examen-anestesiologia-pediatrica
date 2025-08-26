@@ -40,6 +40,7 @@ export async function GET(request: Request) {
         return {
             id: q.id,
             questionText: q.questionText,
+            isMultiSelect: q.isMultiSelect || false, // Include the isMultiSelect field
             options: optionsForQuiz.sort(() => Math.random() - 0.5), // Shuffle options
         }
     });
