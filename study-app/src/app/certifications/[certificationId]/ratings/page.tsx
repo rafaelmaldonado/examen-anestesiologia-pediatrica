@@ -4,6 +4,7 @@ import { useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import RatingsDisplay from '@/components/RatingsDisplay';
+import PaymentButton from '@/components/PaymentButton';
 import type { Certification } from '@/types';
 
 export default function CertificationRatingsPage() {
@@ -12,28 +13,47 @@ export default function CertificationRatingsPage() {
   const [certification, setCertification] = useState<Certification | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [accessStatus, setAccessStatus] = useState<any>(null);
+  const [checkingAccess, setCheckingAccess] = useState(true);
 
   useEffect(() => {
-    const fetchCertification = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`/api/certifications/${certificationId}`);
-        if (response.ok) {
-          const data = await response.json();
-          setCertification(data);
+        
+        // Fetch certification details
+        const certResponse = await fetch(`/api/certifications/${certificationId}`);
+        if (certResponse.ok) {
+          const certData = await certResponse.json();
+          setCertification(certData);
         } else {
           setError('Certification not found');
+          return;
         }
+
+        // Check user access
+        try {
+          const accessResponse = await fetch(`/api/user-access?certificationId=${certificationId}`);
+          if (accessResponse.ok) {
+            const accessData = await accessResponse.json();
+            setAccessStatus(accessData);
+          }
+        } catch (accessError) {
+          // User might not be logged in, that's okay
+          console.log('Access check failed:', accessError);
+        }
+        
       } catch (error) {
-        console.error('Error fetching certification:', error);
+        console.error('Error fetching data:', error);
         setError('Failed to load certification');
       } finally {
         setLoading(false);
+        setCheckingAccess(false);
       }
     };
 
     if (certificationId) {
-      fetchCertification();
+      fetchData();
     }
   }, [certificationId]);
 
@@ -80,13 +100,42 @@ export default function CertificationRatingsPage() {
       <div className="mb-8">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-gray-200">Student Reviews & Ratings</h2>
-          <Link 
-            href={`/quiz/${certificationId}`}
-            className="btn-neon-purple px-6 py-3 rounded-lg font-semibold hover:scale-105 transition-transform"
-          >
-            Take Quiz
-          </Link>
+          {accessStatus?.canTakeQuiz ? (
+            <Link 
+              href={`/quiz/${certificationId}`}
+              className="btn-neon-purple px-6 py-3 rounded-lg font-semibold hover:scale-105 transition-transform"
+            >
+              {accessStatus.hasUsedFreeTrial && !accessStatus.hasPaidAccess ? 'Continue Quiz' : 'Take Quiz'}
+            </Link>
+          ) : (
+            <div className="text-sm text-gray-400">
+              {!checkingAccess && 'Login to take quiz'}
+            </div>
+          )}
         </div>
+        
+        {/* Show payment section if user needs to pay */}
+        {accessStatus?.needsPayment && certification && (
+          <div className="mb-8">
+            <PaymentButton
+              certificationId={certificationId}
+              certificationName={certification.name}
+              price={certification.price}
+              isFree={certification.isFree}
+              onSuccess={() => window.location.reload()}
+            />
+          </div>
+        )}
+
+        {/* Show free trial info */}
+        {!accessStatus?.hasPaidAccess && !certification?.isFree && !accessStatus?.hasUsedFreeTrial && (
+          <div className="mb-6 p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+            <h3 className="text-blue-400 font-semibold mb-2">🎯 Free Trial Available</h3>
+            <p className="text-gray-300 text-sm">
+              Try this certification for free! You get one free quiz attempt before needing to purchase full access.
+            </p>
+          </div>
+        )}
         
         <RatingsDisplay certificationId={certificationId} showAllRatings={true} />
       </div>

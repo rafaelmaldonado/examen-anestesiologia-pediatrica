@@ -1,15 +1,6 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import SocialAuth from '@/components/SocialAuth';
-
 export default function AuthPage() {
-  const router = useRouter();
-
-  const handleAuthSuccess = () => {
-    router.push('/');
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-blue-900 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
@@ -19,7 +10,9 @@ export default function AuthPage() {
             <p className="text-gray-300">Access your study materials and take quizzes</p>
           </div>
           
-          <SocialAuth mode="signin" onSuccess={handleAuthSuccess} />
+          <div className="text-center text-white">
+            Auth component will be loaded here
+          </div>
         </div>
       </div>
     </div>

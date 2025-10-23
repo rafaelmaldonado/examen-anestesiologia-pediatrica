@@ -31,7 +31,7 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { name, description, isAdobe } = body;
+    const { name, description, isAdobe, price, isFree } = body;
 
     if (!name) {
       return NextResponse.json({ error: "Name is required" }, { status: 400 });
@@ -41,9 +41,18 @@ export async function POST(request: Request) {
       name,
       description: description || "",
       isAdobe: isAdobe || false,
+      price: price || 0,
+      isFree: isFree || false,
     });
 
-    return NextResponse.json({ id: docRef.id, name, description, isAdobe }, { status: 201 });
+    return NextResponse.json({ 
+      id: docRef.id, 
+      name, 
+      description, 
+      isAdobe, 
+      price, 
+      isFree 
+    }, { status: 201 });
   } catch (error) {
     console.error("Error creating certification:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

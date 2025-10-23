@@ -3,6 +3,8 @@ export interface Certification {
   name: string;
   description: string | null;
   isAdobe: boolean;
+  price?: number; // Price in cents (USD)
+  isFree?: boolean; // Whether the course is completely free
 }
 
 /**
@@ -57,4 +59,27 @@ export interface RatingStats {
         4: number;
         5: number;
     };
+}
+
+/**
+ * User subscription and payment interfaces
+ */
+export interface UserSubscription {
+    id: string;
+    userId: string;
+    certificationId: string;
+    stripeCustomerId?: string;
+    stripePaymentIntentId?: string;
+    status: 'pending' | 'paid' | 'failed' | 'refunded';
+    amount: number; // Amount in cents
+    createdAt: Date;
+    paidAt?: Date;
+}
+
+export interface UserQuizAttempt {
+    id: string;
+    userId: string;
+    certificationId: string;
+    isFreeAttempt: boolean;
+    createdAt: Date;
 }

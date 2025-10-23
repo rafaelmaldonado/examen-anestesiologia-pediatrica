@@ -12,13 +12,48 @@ export default function QuizPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [accessStatus, setAccessStatus] = useState<any>(null);
+  const [checkingAccess, setCheckingAccess] = useState(true);
 
   const params = useParams();
   const router = useRouter();
   const { certificationId } = params;
 
+  // Check user access before loading quiz
   useEffect(() => {
     if (certificationId) {
+      const checkAccess = async () => {
+        try {
+          const res = await fetch(`/api/user-access?certificationId=${certificationId}`);
+          if (!res.ok) {
+            if (res.status === 401) {
+              router.push('/login');
+              return;
+            }
+            throw new Error('Failed to check access');
+          }
+          const data = await res.json();
+          setAccessStatus(data);
+          
+          if (!data.canTakeQuiz) {
+            setError('You need to purchase access to this certification.');
+            setLoading(false);
+            setCheckingAccess(false);
+            return;
+          }
+        } catch (err: any) {
+          setError(err.message);
+          setLoading(false);
+        } finally {
+          setCheckingAccess(false);
+        }
+      };
+      checkAccess();
+    }
+  }, [certificationId, router]);
+
+  useEffect(() => {
+    if (certificationId && accessStatus?.canTakeQuiz && !checkingAccess) {
       const fetchQuestions = async () => {
         try {
           setLoading(true);
@@ -40,7 +75,7 @@ export default function QuizPage() {
       };
       fetchQuestions();
     }
-  }, [certificationId]);
+  }, [certificationId, accessStatus, checkingAccess]);
 
   const handleOptionSelect = (questionId: string, optionId: string, isMultiSelect: boolean = false) => {
     console.log('handleOptionSelect:', { questionId, optionId, isMultiSelect }); // Debug
@@ -67,7 +102,11 @@ export default function QuizPage() {
         const res = await fetch('/api/results', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ certificationId: certificationId as string, answers: answersForApi }),
+            body: JSON.stringify({ 
+                certificationId: certificationId as string, 
+                answers: answersForApi,
+                isFreeAttempt: !accessStatus?.hasPaidAccess 
+            }),
         });
 
         if (!res.ok) {
@@ -86,19 +125,42 @@ export default function QuizPage() {
     }
   };
 
-  if (loading) return (
+  if (checkingAccess || loading) return (
     <div className="flex justify-center items-center h-screen">
       <div className="text-center">
         <div className="spinner-neon w-12 h-12 mx-auto mb-4"></div>
-        <div className="text-xl font-semibold text-glow-purple">Loading Quiz...</div>
+        <div className="text-xl font-semibold text-glow-purple">
+          {checkingAccess ? 'Checking access...' : 'Loading Quiz...'}
+        </div>
       </div>
     </div>
   );
-  
+
   if (error) return (
     <div className="flex justify-center items-center h-screen">
-      <div className="text-xl font-semibold text-red-400 bg-red-900/20 border border-red-500/30 p-6 rounded-lg">
-        Error: {error}
+      <div className="text-center card-dark p-8 rounded-2xl max-w-md">
+        <div className="text-xl font-semibold text-red-400 mb-4">
+          {error}
+        </div>
+        {accessStatus?.needsPayment && (
+          <div className="space-y-4">
+            <p className="text-gray-300">
+              You've used your free trial. Purchase access to continue taking quizzes for this certification.
+            </p>
+            <button
+              onClick={() => router.push(`/certifications/${certificationId}/ratings`)}
+              className="btn-neon-purple py-3 px-6 rounded-lg"
+            >
+              Purchase Access
+            </button>
+          </div>
+        )}
+        <button
+          onClick={() => router.push('/')}
+          className="mt-4 text-gray-400 hover:text-white"
+        >
+          ← Back to Home
+        </button>
       </div>
     </div>
   );

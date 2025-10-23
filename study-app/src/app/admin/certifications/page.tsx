@@ -15,6 +15,8 @@ export default function CertificationsAdminPage() {
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
     const [isAdobe, setIsAdobe] = useState(false);
+    const [price, setPrice] = useState<number | ''>('');
+    const [isFree, setIsFree] = useState(false);
 
     useEffect(() => {
         fetchCertifications();
@@ -40,10 +42,17 @@ export default function CertificationsAdminPage() {
         const method = isEditing ? 'PUT' : 'POST';
 
         try {
+            const priceInCents = isFree ? 0 : (typeof price === 'number' ? price * 100 : 0);
             const res = await fetch(url, {
                 method,
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, description, isAdobe }),
+                body: JSON.stringify({ 
+                    name, 
+                    description, 
+                    isAdobe, 
+                    price: priceInCents,
+                    isFree 
+                }),
             });
             if (!res.ok) {
                 const errData = await res.json();
@@ -61,6 +70,8 @@ export default function CertificationsAdminPage() {
         setName(cert.name);
         setDescription(cert.description || '');
         setIsAdobe(cert.isAdobe);
+        setPrice(cert.price ? cert.price / 100 : '');
+        setIsFree(cert.isFree || false);
     };
 
     const handleDelete = async (id: string) => {
@@ -80,6 +91,8 @@ export default function CertificationsAdminPage() {
         setName('');
         setDescription('');
         setIsAdobe(false);
+        setPrice('');
+        setIsFree(false);
     };
 
     return (
@@ -118,6 +131,15 @@ export default function CertificationsAdminPage() {
                                         {cert.isAdobe && (
                                             <span className="bg-red-500/20 text-red-400 text-xs px-2 py-1 rounded-full border border-red-500/30">
                                                 Adobe
+                                            </span>
+                                        )}
+                                        {cert.isFree ? (
+                                            <span className="bg-green-500/20 text-green-400 text-xs px-2 py-1 rounded-full border border-green-500/30">
+                                                Free
+                                            </span>
+                                        ) : (
+                                            <span className="bg-blue-500/20 text-blue-400 text-xs px-2 py-1 rounded-full border border-blue-500/30">
+                                                ${cert.price ? (cert.price / 100).toFixed(2) : '29.99'}
                                             </span>
                                         )}
                                     </div>
@@ -184,6 +206,34 @@ export default function CertificationsAdminPage() {
                                     />
                                     <span className="text-sm text-gray-300">Is this an Adobe Certification?</span>
                                 </label>
+                            </div>
+                            <div>
+                                <label className="flex items-center space-x-3 mb-4">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={isFree} 
+                                        onChange={e => setIsFree(e.target.checked)} 
+                                        className="w-5 h-5 text-green-500 bg-transparent border-2 border-green-500/50 rounded focus:ring-green-500 focus:ring-2"
+                                    />
+                                    <span className="text-sm text-gray-300">Free certification (no payment required)</span>
+                                </label>
+                                {!isFree && (
+                                    <div>
+                                        <label className="block text-sm font-semibold mb-3 text-gray-300">Price (USD)</label>
+                                        <input 
+                                            type="number" 
+                                            value={price} 
+                                            onChange={e => setPrice(e.target.value === '' ? '' : parseFloat(e.target.value))} 
+                                            className="input-neon w-full px-4 py-3 rounded-lg" 
+                                            placeholder="29.99"
+                                            min="0"
+                                            step="0.01"
+                                        />
+                                        <p className="text-xs text-gray-400 mt-2">
+                                            Leave empty to use default price ($29.99)
+                                        </p>
+                                    </div>
+                                )}
                             </div>
                             <div className="flex justify-between pt-4">
                                 <button 

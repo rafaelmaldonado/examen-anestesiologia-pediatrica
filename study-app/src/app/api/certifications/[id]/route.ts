@@ -35,7 +35,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     const { adminDb } = checkFirebaseAdmin();
     const { id } = await params;
     const body = await request.json();
-    const { name, description, isAdobe } = body;
+    const { name, description, isAdobe, price, isFree } = body;
 
     if (!name) {
       return NextResponse.json({ error: "Name is required" }, { status: 400 });
@@ -46,9 +46,11 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         name,
         description,
         isAdobe,
+        price: price || 0,
+        isFree: isFree || false,
     });
 
-    return NextResponse.json({ id, name, description, isAdobe });
+    return NextResponse.json({ id, name, description, isAdobe, price, isFree });
   } catch (error) {
     const { id } = await params;
     console.error(`Error updating certification ${id}:`, error);

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase/admin";
 import { getVerifiedUser } from "@/lib/firebase/auth-helper";
+import { recordQuizAttempt } from "@/lib/stripe/helpers";
 import * as admin from 'firebase-admin';
 
 interface UserAnswer {
@@ -20,7 +21,11 @@ export async function POST(request: Request) {
     const body = await request.json();
     console.log('Received request body:', JSON.stringify(body, null, 2));
     
-    const { certificationId, answers } = body as { certificationId: string, answers: UserAnswer[] };
+    const { certificationId, answers, isFreeAttempt = false } = body as { 
+      certificationId: string, 
+      answers: UserAnswer[],
+      isFreeAttempt?: boolean 
+    };
 
     if (!certificationId || !answers || !Array.isArray(answers) || answers.length === 0) {
       console.error('Missing required fields:', { certificationId, answers });
@@ -110,6 +115,14 @@ export async function POST(request: Request) {
         score,
         createdAt: new Date(),
       });
+    }
+
+    // Record the quiz attempt for payment tracking
+    try {
+      await recordQuizAttempt(userId, certificationId, isFreeAttempt);
+    } catch (attemptError) {
+      console.error('Error recording quiz attempt:', attemptError);
+      // Don't fail the whole request if this fails
     }
 
     return NextResponse.json({
