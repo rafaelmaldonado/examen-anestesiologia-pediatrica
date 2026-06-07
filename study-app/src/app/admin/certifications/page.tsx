@@ -75,7 +75,7 @@ export default function CertificationsAdminPage() {
     };
 
     const handleDelete = async (id: string) => {
-        if (confirm('Are you sure you want to delete this certification? This will also delete all associated questions.')) {
+        if (confirm('¿Estás seguro de que deseas eliminar esta materia? También se eliminarán todas sus preguntas.')) {
             try {
                 const res = await fetch(`/api/certifications/${id}`, { method: 'DELETE' });
                 if (!res.ok) throw new Error('Failed to delete certification');
@@ -100,21 +100,21 @@ export default function CertificationsAdminPage() {
             <div className="container mx-auto p-8 max-w-6xl min-h-screen">
             <div className="flex justify-between items-center mb-8">
                 <div>
-                    <h1 className="text-2xl font-bold text-[var(--foreground)] mb-1">Manage Certifications</h1>
-                    <p className="text-sm text-[var(--foreground-muted)]">Create and manage certification categories</p>
+                    <h1 className="text-2xl font-bold text-[var(--foreground)] mb-1">Gestionar Materias</h1>
+                    <p className="text-sm text-[var(--foreground-muted)]">Crea y administra las materias del examen</p>
                 </div>
                 <Link href="/admin" className="btn-neon-purple py-2 px-4 rounded-lg text-sm font-medium">
-                    ← Back to Dashboard
+                    ← Panel Admin
                 </Link>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2">
-                    <h2 className="text-xl font-semibold mb-5 text-[var(--foreground)]">Existing Certifications</h2>
+                    <h2 className="text-xl font-semibold mb-5 text-[var(--foreground)]">Materias existentes</h2>
                     {loading && (
                         <div className="text-center py-8">
                             <div className="spinner-neon w-8 h-8 mx-auto mb-4"></div>
-                            <p className="text-[var(--foreground-muted)]">Loading...</p>
+                            <p className="text-[var(--foreground-muted)]">Cargando...</p>
                         </div>
                     )}
                     {error && (
@@ -143,26 +143,26 @@ export default function CertificationsAdminPage() {
                                             </span>
                                         )}
                                     </div>
-                                    <p className="text-sm text-[var(--foreground-muted)]">{cert.description || 'No description'}</p>
+                                        <p className="text-sm text-[var(--foreground-muted)]">{cert.description || 'Sin descripción'}</p>
                                 </div>
                                 <div className="flex items-center space-x-2 ml-4">
                                     <Link 
                                         href={`/admin/questions/${cert.id}`}
                                         className="bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 px-3 py-1.5 rounded-lg transition-colors text-sm"
                                     >
-                                        Questions
+                                        Preguntas
                                     </Link>
                                     <button 
                                         onClick={() => handleEdit(cert)} 
                                         className="bg-[var(--accent-lighter)] hover:bg-amber-100 border border-amber-200 text-amber-700 px-3 py-1.5 rounded-lg transition-colors text-sm"
                                     >
-                                        Edit
+                                        Editar
                                     </button>
                                     <button 
                                         onClick={() => handleDelete(cert.id)} 
                                         className="bg-[var(--error-light)] hover:bg-red-100 border border-red-200 text-[var(--error)] px-3 py-1.5 rounded-lg transition-colors text-sm"
                                     >
-                                        Delete
+                                        Eliminar
                                     </button>
                                 </div>
                             </div>
@@ -172,28 +172,28 @@ export default function CertificationsAdminPage() {
 
                 <div>
                     <h2 className="text-xl font-semibold mb-5 text-[var(--foreground)]">
-                        {isEditing ? 'Edit Certification' : 'Add New Certification'}
+                        {isEditing ? 'Editar Materia' : 'Agregar Nueva Materia'}
                     </h2>
                     <div className="card-dark p-6 rounded-xl">
                         <form onSubmit={handleSubmit} className="space-y-5">
                             <div>
-                                <label className="block text-sm font-medium mb-2 text-[var(--foreground)]">Name</label>
+                                <label className="block text-sm font-medium mb-2 text-[var(--foreground)]">Nombre</label>
                                 <input 
                                     type="text" 
                                     value={name} 
                                     onChange={e => setName(e.target.value)} 
                                     className="input-neon w-full px-4 py-2.5 rounded-lg" 
-                                    placeholder="Certification name"
+                                    placeholder="Nombre de la materia"
                                     required 
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium mb-2 text-[var(--foreground)]">Description</label>
+                                <label className="block text-sm font-medium mb-2 text-[var(--foreground)]">Descripción</label>
                                 <textarea 
                                     value={description} 
                                     onChange={e => setDescription(e.target.value)} 
                                     className="input-neon w-full px-4 py-2.5 rounded-lg h-28 resize-none" 
-                                    placeholder="Brief description of the certification"
+                                    placeholder="Breve descripción de la materia"
                                 />
                             </div>
                             <div>
@@ -204,7 +204,7 @@ export default function CertificationsAdminPage() {
                                         onChange={e => setIsAdobe(e.target.checked)} 
                                         className="w-4 h-4 text-[var(--primary)] border-[var(--border-hover)] rounded focus:ring-[var(--primary)] focus:ring-2"
                                     />
-                                    <span className="text-sm text-[var(--foreground)]">Is this an Adobe Certification?</span>
+                                    <span className="text-sm text-[var(--foreground)]">Marcar como certificación Adobe</span>
                                 </label>
                             </div>
                             <div>
@@ -215,11 +215,11 @@ export default function CertificationsAdminPage() {
                                         onChange={e => setIsFree(e.target.checked)} 
                                         className="w-4 h-4 text-[var(--success)] border-[var(--border-hover)] rounded focus:ring-[var(--success)] focus:ring-2"
                                     />
-                                    <span className="text-sm text-[var(--foreground)]">Free certification (no payment required)</span>
+                                    <span className="text-sm text-[var(--foreground)]">Materia gratuita (sin pago requerido)</span>
                                 </label>
                                 {!isFree && (
                                     <div>
-                                        <label className="block text-sm font-medium mb-2 text-[var(--foreground)]">Price (USD)</label>
+                                        <label className="block text-sm font-medium mb-2 text-[var(--foreground)]">Precio (USD)</label>
                                         <input 
                                             type="number" 
                                             value={price} 
@@ -230,7 +230,7 @@ export default function CertificationsAdminPage() {
                                             step="0.01"
                                         />
                                         <p className="text-xs text-[var(--foreground-muted)] mt-1">
-                                            Leave empty to use default price ($29.99)
+                                            Dejar vacío para usar precio por defecto
                                         </p>
                                     </div>
                                 )}
@@ -240,7 +240,7 @@ export default function CertificationsAdminPage() {
                                     type="submit" 
                                     className="btn-neon-purple py-2.5 px-6 rounded-lg font-medium"
                                 >
-                                    {isEditing ? '✓ Update' : '+ Create'}
+                                    {isEditing ? '✓ Actualizar' : '+ Crear'}
                                 </button>
                                 {isEditing && (
                                     <button 
@@ -248,7 +248,7 @@ export default function CertificationsAdminPage() {
                                         onClick={resetForm} 
                                         className="bg-[var(--background-tertiary)] hover:bg-[var(--border)] border border-[var(--border)] text-[var(--foreground-muted)] py-2.5 px-6 rounded-lg transition-colors"
                                     >
-                                        Cancel
+                                        Cancelar
                                     </button>
                                 )}
                             </div>

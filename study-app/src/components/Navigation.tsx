@@ -56,7 +56,7 @@ export default function Navigation() {
     <nav className="nav-dark sticky top-0 z-40 p-4">
       <div className="container mx-auto flex justify-between items-center">
         <Link href="/" className="text-xl font-bold text-[var(--foreground)]">
-          📚 Study App
+          🩺 Anestesiología Pediátrica
         </Link>
         
         <div className="flex items-center space-x-6">
@@ -68,7 +68,7 @@ export default function Navigation() {
                   pathname === '/' ? 'text-[var(--primary)]' : 'text-[var(--foreground-muted)]'
                 }`}
               >
-                Home
+                Inicio
               </Link>
               <Link 
                 href="/history" 
@@ -76,7 +76,7 @@ export default function Navigation() {
                   pathname === '/history' ? 'text-[var(--primary)]' : 'text-[var(--foreground-muted)]'
                 }`}
               >
-                History
+                Historial
               </Link>
               
               {/* User Menu */}
@@ -98,7 +98,7 @@ export default function Navigation() {
                         onClick={handleLogout}
                         className="w-full text-left px-4 py-2 text-sm text-[var(--error)] hover:bg-[var(--error-light)] transition-colors duration-200"
                       >
-                        Sign Out
+                        Cerrar Sesión
                       </button>
                     </div>
                   </div>
@@ -110,7 +110,7 @@ export default function Navigation() {
               href="/auth" 
               className="btn-neon-purple py-2 px-5 rounded-lg text-sm font-medium"
             >
-              Sign In
+              Iniciar Sesión
             </Link>
           )}
         </div>

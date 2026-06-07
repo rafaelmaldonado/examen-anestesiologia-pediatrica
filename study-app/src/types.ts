@@ -83,3 +83,13 @@ export interface UserQuizAttempt {
     isFreeAttempt: boolean;
     createdAt: Date;
 }
+
+export interface ExamResult {
+    id?: string;
+    userId: string;
+    certificationId: string;
+    certificationName?: string;
+    score: number;
+    timeTaken?: number; // segundos
+    createdAt: Date;
+}

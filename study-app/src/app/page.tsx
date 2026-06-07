@@ -61,7 +61,7 @@ export default function HomePage() {
       <main className="container mx-auto p-6 sm:p-8 min-h-screen flex justify-center items-center">
         <div className="text-center">
           <div className="spinner-neon w-10 h-10 mx-auto mb-4"></div>
-          <div className="text-lg font-medium text-[var(--foreground-muted)]">Loading certifications...</div>
+          <div className="text-lg font-medium text-[var(--foreground-muted)]">Cargando materias...</div>
         </div>
       </main>
     );
@@ -70,8 +70,8 @@ export default function HomePage() {
   return (
     <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 min-h-screen max-w-6xl">
       <div className="text-center mb-10 sm:mb-14">
-        <h1 className="text-3xl sm:text-4xl font-bold text-[var(--foreground)] mb-3">Study Certifications</h1>
-        <p className="text-base sm:text-lg text-[var(--foreground-muted)]">Choose a certification to start your learning journey</p>
+        <h1 className="text-3xl sm:text-4xl font-bold text-[var(--foreground)] mb-3">Examen Anestesiología Pediátrica</h1>
+        <p className="text-base sm:text-lg text-[var(--foreground-muted)]">Selecciona una materia para comenzar tu examen</p>
       </div>
 
       {error && (
@@ -111,16 +111,10 @@ export default function HomePage() {
                           {ratingStats.averageRating} ({ratingStats.totalRatings})
                         </span>
                       </div>
-                      <Link 
-                        href={`/certifications/${cert.id}/ratings`}
-                        className="text-xs text-[var(--primary)] hover:text-[var(--primary-light)] transition-colors mt-1 block"
-                      >
-                        View all reviews →
-                      </Link>
                     </div>
                   ) : (
                     <div className="mb-4 p-3 bg-[var(--background-secondary)] rounded-lg border border-[var(--border)]">
-                      <span className="text-xs text-[var(--foreground-muted)]">No ratings yet</span>
+                      <span className="text-xs text-[var(--foreground-muted)]">Sin calificaciones aún</span>
                     </div>
                   )}
 
@@ -132,11 +126,11 @@ export default function HomePage() {
                     )}
                     {user ? (
                       <Link href={`/quiz/${cert.id}`} className="text-[var(--primary)] hover:text-[var(--primary-light)] transition-colors duration-200 font-semibold text-sm">
-                        Start Quiz →
+                        Iniciar Examen →
                       </Link>
                     ) : (
                       <Link href="/auth" className="text-[var(--foreground-muted)] hover:text-[var(--primary)] transition-colors duration-200 font-semibold text-sm">
-                        Sign In to Start →
+                        Inicia sesión para comenzar →
                       </Link>
                     )}
                   </div>

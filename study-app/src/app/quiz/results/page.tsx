@@ -106,7 +106,7 @@ export default function ResultsPage() {
             <div className="flex justify-center items-center h-screen">
                 <div className="text-center">
                     <div className="spinner-neon w-10 h-10 mx-auto mb-4"></div>
-                    <div className="text-lg font-medium text-[var(--foreground-muted)]">Loading results...</div>
+                    <div className="text-lg font-medium text-[var(--foreground-muted)]">Cargando resultados...</div>
                 </div>
             </div>
         );
@@ -116,9 +116,9 @@ export default function ResultsPage() {
         return (
             <div className="flex flex-col justify-center items-center h-screen">
                 <div className="text-center card-dark p-8 rounded-xl">
-                    <p className="text-lg font-medium text-[var(--foreground-muted)] mb-4">No results found.</p>
+                    <p className="text-lg font-medium text-[var(--foreground-muted)] mb-4">No se encontraron resultados.</p>
                     <Link href="/">
-                        <span className="btn-neon-purple py-2 px-6 rounded-lg inline-block">Go back to home</span>
+                        <span className="btn-neon-purple py-2 px-6 rounded-lg inline-block">Volver al inicio</span>
                     </Link>
                 </div>
             </div>
@@ -128,12 +128,12 @@ export default function ResultsPage() {
     return (
         <div className="container mx-auto p-4 sm:p-8 max-w-4xl min-h-screen">
             <div className="text-center mb-8">
-                <h1 className="text-2xl sm:text-3xl font-bold mb-2 text-[var(--foreground)]">Quiz Results</h1>
-                <p className="text-[var(--foreground-muted)]">Here's how you performed on your certification quiz</p>
+                <h1 className="text-2xl sm:text-3xl font-bold mb-2 text-[var(--foreground)]">Resultados del Examen</h1>
+                <p className="text-[var(--foreground-muted)]">Así fue tu desempeño en el examen</p>
             </div>
             
             <div className="text-center mb-8 card-dark p-8 rounded-xl">
-                <p className="text-lg text-[var(--foreground-muted)] mb-3">Your Final Score:</p>
+                <p className="text-lg text-[var(--foreground-muted)] mb-3">Calificación Final:</p>
                 <p className={`text-6xl font-bold mb-4 ${results.score >= 75 ? 'text-[var(--success)]' : 'text-[var(--accent)]'}`}>
                     {results.score}%
                 </p>
@@ -144,7 +144,7 @@ export default function ResultsPage() {
                     ></div>
                 </div>
                 <p className="text-[var(--foreground-muted)]">
-                    {results.score >= 75 ? '🎉 Congratulations! You passed!' : '📚 Keep studying and try again!'}
+                    {results.score >= 75 ? '🎉 ¡Felicitaciones! Aprobaste el examen.' : '📚 Sigue estudiando y vuelve a intentarlo.'}
                 </p>
                 
                 {certification && results.score >= 75 && (
@@ -153,10 +153,10 @@ export default function ResultsPage() {
                             onClick={() => setShowRatingForm(true)}
                             className="btn-neon-orange font-medium py-3 px-6 rounded-lg text-lg hover:scale-[1.02] transition-transform"
                         >
-                            ⭐ Rate This Certification
+                            ⭐ Calificar esta materia
                         </button>
                         <p className="text-sm text-[var(--foreground-muted)] mt-2">
-                            Help others by sharing your experience
+                            Ayuda a otros compartiendo tu experiencia
                         </p>
                     </div>
                 )}
@@ -169,7 +169,7 @@ export default function ResultsPage() {
                             Question {index + 1}: {res.questionText}
                             {res.isMultiSelect && (
                                 <span className="ml-2 text-sm font-normal text-[var(--accent)]">
-                                    (Multi-select)
+                                    (Selección múltiple)
                                 </span>
                             )}
                         </h3>
@@ -195,12 +195,12 @@ export default function ResultsPage() {
                                             <div className="flex items-center space-x-2">
                                                 {isSelected && (
                                                     <span className="text-sm px-2 py-1 rounded bg-blue-50 text-blue-700 border border-blue-200">
-                                                        Your Answer
+                                                        Tu respuesta
                                                     </span>
                                                 )}
                                                 {isCorrect && (
                                                     <span className="text-sm px-2 py-1 rounded bg-[var(--success-light)] text-green-700 border border-green-200">
-                                                        ✓ Correct
+                                                        ✓ Correcta
                                                     </span>
                                                 )}
                                             </div>
@@ -212,7 +212,7 @@ export default function ResultsPage() {
 
                         {!res.isCorrect && res.correctOptions.length > 0 && res.correctOptions[0].explanation && (
                             <div className="mt-4 p-4 bg-[var(--accent-lighter)] border border-amber-200 text-amber-900 rounded-lg">
-                                <h4 className="font-semibold mb-1">💡 Explanation:</h4>
+                                <h4 className="font-semibold mb-1">💡 Explicación:</h4>
                                 <p className="text-sm">{res.correctOptions[0].explanation}</p>
                             </div>
                         )}
@@ -224,12 +224,12 @@ export default function ResultsPage() {
                 <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                     <Link href="/">
                         <span className="btn-neon-purple font-medium py-3 px-8 rounded-lg">
-                            🏠 Back to Home
+                            🏠 Volver al inicio
                         </span>
                     </Link>
                     <Link href="/history">
                         <span className="btn-neon-orange font-medium py-3 px-8 rounded-lg">
-                            📊 View History
+                            📊 Ver historial
                         </span>
                     </Link>
                 </div>

@@ -49,7 +49,7 @@ export default function HistoryPage() {
       <div className="flex justify-center items-center h-screen">
         <div className="text-center">
           <div className="spinner-neon w-10 h-10 mx-auto mb-4"></div>
-          <div className="text-lg font-medium text-[var(--foreground-muted)]">Loading history...</div>
+          <div className="text-lg font-medium text-[var(--foreground-muted)]">Cargando historial...</div>
         </div>
       </div>
     );
@@ -61,7 +61,7 @@ export default function HistoryPage() {
         <div className="text-center card-dark p-8 rounded-xl">
           <p className="text-lg font-medium text-[var(--error)] mb-4">{error}</p>
           <Link href="/">
-            <span className="btn-neon-purple py-2 px-6 rounded-lg inline-block">Go back to home</span>
+            <span className="btn-neon-purple py-2 px-6 rounded-lg inline-block">Volver al inicio</span>
           </Link>
         </div>
       </div>
@@ -87,40 +87,40 @@ export default function HistoryPage() {
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 max-w-5xl min-h-screen">
       <div className="text-center mb-8">
-        <h1 className="text-2xl sm:text-3xl font-bold mb-2 text-[var(--foreground)]">Quiz History & Progress</h1>
-        <p className="text-[var(--foreground-muted)]">Track your learning journey and improvement over time</p>
+        <h1 className="text-2xl sm:text-3xl font-bold mb-2 text-[var(--foreground)]">Historial de Exámenes</h1>
+        <p className="text-[var(--foreground-muted)]">Sigue tu progreso a lo largo del tiempo</p>
       </div>
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-8">
         <div className="card-dark p-5 rounded-xl text-center">
           <div className="text-3xl font-bold text-[var(--primary)] mb-1">{totalQuizzes}</div>
-          <div className="text-sm text-[var(--foreground-muted)]">Total Quizzes</div>
+          <div className="text-sm text-[var(--foreground-muted)]">Total de exámenes</div>
         </div>
         <div className="card-dark p-5 rounded-xl text-center">
           <div className="text-3xl font-bold text-[var(--accent)] mb-1">{averageScore}%</div>
-          <div className="text-sm text-[var(--foreground-muted)]">Average Score</div>
+          <div className="text-sm text-[var(--foreground-muted)]">Calificación promedio</div>
         </div>
         <div className="card-dark p-5 rounded-xl text-center">
           <div className="text-3xl font-bold text-[var(--success)] mb-1">{bestScore}%</div>
-          <div className="text-sm text-[var(--foreground-muted)]">Best Score</div>
+          <div className="text-sm text-[var(--foreground-muted)]">Mejor calificación</div>
         </div>
       </div>
 
       {totalQuizzes === 0 ? (
         <div className="text-center card-dark p-10 sm:p-12 rounded-xl">
           <div className="text-5xl mb-4">📚</div>
-          <h2 className="text-xl font-semibold text-[var(--foreground)] mb-3">No Quiz History Yet</h2>
-          <p className="text-[var(--foreground-muted)] mb-6">Start taking quizzes to track your progress!</p>
+          <h2 className="text-xl font-semibold text-[var(--foreground)] mb-3">Sin historial de exámenes</h2>
+          <p className="text-[var(--foreground-muted)] mb-6">¡Comienza a tomar exámenes para ver tu progreso!</p>
           <Link href="/">
-            <span className="btn-neon-purple py-3 px-8 rounded-lg inline-block">Take Your First Quiz</span>
+            <span className="btn-neon-purple py-3 px-8 rounded-lg inline-block">Tomar mi primer examen</span>
           </Link>
         </div>
       ) : (
         <>
           {/* Progress by Certification */}
           <div className="mb-8">
-            <h2 className="text-xl font-semibold text-[var(--foreground)] mb-5">Progress by Certification</h2>
+            <h2 className="text-xl font-semibold text-[var(--foreground)] mb-5">Progreso por Materia</h2>
             <div className="space-y-5">
               {Object.entries(progressByPlatform).map(([certName, certResults]) => {
                 const sortedResults = certResults.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
@@ -132,7 +132,7 @@ export default function HistoryPage() {
                     <div className="flex justify-between items-center mb-4">
                       <h3 className="text-lg font-semibold text-[var(--foreground)]">{certName}</h3>
                       <div className="flex items-center space-x-3">
-                        <span className="text-sm text-[var(--foreground-muted)]">{certResults.length} attempts</span>
+                        <span className="text-sm text-[var(--foreground-muted)]">{certResults.length} intentos</span>
                         {improvement > 0 && (
                           <span className="text-green-600 text-sm font-medium">↗️ +{improvement}%</span>
                         )}
@@ -165,12 +165,12 @@ export default function HistoryPage() {
                       </div>
                     ) : (
                       <div className="h-20 mb-4 bg-[var(--background-secondary)] rounded-lg p-4 flex items-center justify-center">
-                        <span className="text-[var(--foreground-muted)] text-sm">No quiz data available</span>
+                        <span className="text-[var(--foreground-muted)] text-sm">Sin datos disponibles</span>
                       </div>
                     )}
                     
                     <div className="text-sm text-[var(--foreground-muted)]">
-                      Latest: {latestScore}% • Best: {Math.max(...certResults.map(r => r.score))}%
+                      Última: {latestScore}% • Mejor: {Math.max(...certResults.map(r => r.score))}%
                     </div>
                   </div>
                 );
@@ -180,7 +180,7 @@ export default function HistoryPage() {
 
           {/* Recent Results */}
           <div>
-            <h2 className="text-xl font-semibold text-[var(--foreground)] mb-5">Recent Results</h2>
+            <h2 className="text-xl font-semibold text-[var(--foreground)] mb-5">Resultados Recientes</h2>
             <div className="space-y-4">
               {recentResults.map((result) => (
                 <div key={result.id} className="card-dark p-4 rounded-xl flex items-center justify-between">
@@ -193,7 +193,7 @@ export default function HistoryPage() {
                       {result.score}%
                     </div>
                     <div>
-                      <h3 className="font-medium text-[var(--foreground)]">{result.certificationName || 'Unknown Certification'}</h3>
+                      <h3 className="font-medium text-[var(--foreground)]">{result.certificationName || 'Materia desconocida'}</h3>
                       <p className="text-sm text-[var(--foreground-muted)]">{new Date(result.createdAt).toLocaleDateString()}</p>
                     </div>
                   </div>

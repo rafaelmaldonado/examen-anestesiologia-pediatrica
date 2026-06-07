@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase/admin";
 import { getVerifiedUser } from "@/lib/firebase/auth-helper";
-import { recordQuizAttempt } from "@/lib/stripe/helpers";
 import * as admin from 'firebase-admin';
 
 interface UserAnswer {
-  questionId: string; // Firestore IDs are strings
-  selectedOptionId: string[]; // Changed to array to support multi-select
+  questionId: string;
+  selectedOptionId: string[];
 }
 
 // POST to submit quiz results and get the score
@@ -19,12 +18,11 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    console.log('Received request body:', JSON.stringify(body, null, 2));
     
-    const { certificationId, answers, isFreeAttempt = false } = body as { 
+    const { certificationId, answers, timeTaken } = body as { 
       certificationId: string, 
       answers: UserAnswer[],
-      isFreeAttempt?: boolean 
+      timeTaken?: number
     };
 
     if (!certificationId || !answers || !Array.isArray(answers) || answers.length === 0) {
@@ -34,14 +32,8 @@ export async function POST(request: Request) {
 
     const questionIds = answers.map(a => a.questionId);
 
-    // Debug logging
-    console.log('questionIds:', questionIds);
-    console.log('certificationId:', certificationId);
-
-    // Validate questionIds
     if (questionIds.some(id => !id)) {
-      console.error('Some question IDs are undefined or empty:', questionIds);
-      return NextResponse.json({ error: "Invalid question IDs" }, { status: 400 });
+      return NextResponse.json({ error: "IDs de preguntas inválidos" }, { status: 400 });
     }
 
     if (!adminDb) {
@@ -112,17 +104,11 @@ export async function POST(request: Request) {
       await adminDb.collection("testResults").add({
         userId,
         certificationId,
+        certificationName,
         score,
+        timeTaken: timeTaken ?? null,
         createdAt: new Date(),
       });
-    }
-
-    // Record the quiz attempt for payment tracking
-    try {
-      await recordQuizAttempt(userId, certificationId, isFreeAttempt);
-    } catch (attemptError) {
-      console.error('Error recording quiz attempt:', attemptError);
-      // Don't fail the whole request if this fails
     }
 
     return NextResponse.json({
@@ -130,6 +116,7 @@ export async function POST(request: Request) {
       results: resultsWithExplanations,
       certificationId,
       certificationName,
+      timeTaken,
     });
 
   } catch (error) {
