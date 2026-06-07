@@ -176,8 +176,8 @@ export default function QuestionsAdminPage() {
         return (
             <div className="flex justify-center items-center h-screen">
                 <div className="text-center">
-                    <div className="spinner-neon w-12 h-12 mx-auto mb-4"></div>
-                    <div className="text-xl font-semibold text-glow-purple">Loading Questions...</div>
+                    <div className="spinner-neon w-10 h-10 mx-auto mb-4"></div>
+                    <div className="text-lg font-semibold text-[var(--foreground-muted)]">Loading Questions...</div>
                 </div>
             </div>
         );
@@ -186,7 +186,7 @@ export default function QuestionsAdminPage() {
     if (error) {
         return (
             <div className="container mx-auto p-8">
-                <div className="text-red-400 bg-red-900/20 border border-red-500/30 p-4 rounded-lg">
+                <div className="text-[var(--error)] bg-[var(--error-light)] border border-red-200 p-4 rounded-lg">
                     Error: {error}
                 </div>
             </div>
@@ -198,24 +198,24 @@ export default function QuestionsAdminPage() {
             <div className="container mx-auto p-8 max-w-6xl min-h-screen">
             <div className="flex justify-between items-center mb-8">
                 <div>
-                    <Link href="/admin/certifications" className="text-glow-orange hover:text-glow-cyan transition-all mb-2 inline-block">
+                    <Link href="/admin/certifications" className="text-[var(--primary)] hover:text-[var(--primary-hover)] transition-colors mb-2 inline-block text-sm font-medium">
                         ← Back to Certifications
                     </Link>
-                    <h1 className="text-3xl font-bold text-glow-purple">
-                        Questions for: <span className="text-glow-orange">{certification?.name}</span>
+                    <h1 className="text-2xl font-bold text-[var(--foreground)]">
+                        Questions for: <span className="text-[var(--primary)]">{certification?.name}</span>
                     </h1>
                 </div>
             </div>
 
             <div className="space-y-6 mb-8">
                 {questions.map((q, index) => (
-                    <div key={q.id} className="card-dark p-6 rounded-xl">
+                    <div key={q.id} className="card-dark p-5 rounded-xl">
                         <div className="flex justify-between items-start">
                             <div className="flex-1">
-                                <h3 className="font-bold text-lg text-gray-200 mb-4">
+                                <h3 className="font-semibold text-[var(--foreground)] mb-3">
                                     {index + 1}. {q.questionText}
                                     {q.isMultiSelect && (
-                                        <span className="ml-2 text-sm font-normal text-yellow-400 bg-yellow-400/10 px-2 py-1 rounded">
+                                        <span className="ml-2 text-xs font-medium text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
                                             Multi-select
                                         </span>
                                     )}
@@ -224,32 +224,32 @@ export default function QuestionsAdminPage() {
                                     {q.options.map(opt => (
                                         <div 
                                             key={opt.id} 
-                                            className={`p-3 rounded-lg border-2 ${
+                                            className={`p-2.5 rounded-lg border ${
                                                 opt.isCorrect 
-                                                    ? 'border-green-400/50 bg-green-500/10 text-green-300' 
-                                                    : 'border-gray-500/30 bg-gray-600/10 text-gray-400'
+                                                    ? 'border-green-200 bg-[var(--success-light)] text-green-800' 
+                                                    : 'border-[var(--border)] bg-[var(--background-tertiary)] text-[var(--foreground-muted)]'
                                             }`}
                                         >
                                             <div className="flex items-center justify-between">
-                                                <span>{opt.optionText}</span>
+                                                <span className="text-sm">{opt.optionText}</span>
                                                 {opt.isCorrect && (
-                                                    <span className="text-green-400 text-sm font-semibold">✓ Correct</span>
+                                                    <span className="text-green-700 text-xs font-semibold">✓ Correct</span>
                                                 )}
                                             </div>
                                         </div>
                                     ))}
                                 </div>
                             </div>
-                            <div className="space-x-2 flex-shrink-0">
+                            <div className="space-x-2 flex-shrink-0 ml-4">
                                 <button 
                                     onClick={() => handleEdit(q)} 
-                                    className="btn-neon-orange px-4 py-2 rounded-lg hover:scale-105 transition-all"
+                                    className="bg-[var(--accent-lighter)] hover:bg-amber-100 border border-amber-200 text-amber-700 px-3 py-1.5 rounded-lg transition-colors text-sm"
                                 >
                                     Edit
                                 </button>
                                 <button 
                                     onClick={() => handleDelete(q.id)} 
-                                    className="bg-red-600/20 border border-red-500/50 text-red-300 px-4 py-2 rounded-lg hover:bg-red-500/30 hover:scale-105 transition-all"
+                                    className="bg-[var(--error-light)] hover:bg-red-100 border border-red-200 text-[var(--error)] px-3 py-1.5 rounded-lg transition-colors text-sm"
                                 >
                                     Delete
                                 </button>
@@ -259,17 +259,17 @@ export default function QuestionsAdminPage() {
                 ))}
             </div>
 
-            <div className="border-t border-gray-600/30 my-12"></div>
+            <div className="border-t border-[var(--border)] my-10"></div>
 
-            <div className="mb-12">
-                <h2 className="text-2xl font-semibold mb-4 text-glow-orange">Bulk Import from JSON</h2>
+            <div className="mb-10">
+                <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)]">Bulk Import from JSON</h2>
                 <div className="card-dark p-6 rounded-xl">
-                    <p className="text-sm text-gray-400 mb-4">Upload a JSON file with an array of questions. See README for schema.</p>
+                    <p className="text-sm text-[var(--foreground-muted)] mb-4">Upload a JSON file with an array of questions. See README for schema.</p>
                     <input
                         type="file"
                         accept=".json"
                         onChange={(e) => setJsonFile(e.target.files ? e.target.files[0] : null)}
-                        className="input-neon w-full mb-4 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-purple-600/20 file:text-purple-300 hover:file:bg-purple-500/30 file:transition-all"
+                        className="input-neon w-full mb-4 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-[var(--primary-light)] file:text-[var(--primary)] hover:file:bg-[var(--primary)]/10 file:transition-colors"
                     />
                     <button
                         onClick={handleBulkImport}
@@ -278,15 +278,15 @@ export default function QuestionsAdminPage() {
                     >
                         {importing ? 'Importing...' : 'Import Questions'}
                     </button>
-                    {importError && <p className="text-red-400 text-sm mt-2">{importError}</p>}
+                    {importError && <p className="text-[var(--error)] text-sm mt-2">{importError}</p>}
                 </div>
             </div>
 
             <div>
-                <h2 className="text-2xl font-semibold mb-4 text-glow-purple">{isEditing ? 'Edit Question' : 'Add New Question'}</h2>
+                <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)]">{isEditing ? 'Edit Question' : 'Add New Question'}</h2>
                 <form onSubmit={handleSubmit} className="card-dark p-6 rounded-xl">
-                    <div className="mb-6">
-                        <label className="block text-sm font-bold mb-2 text-gray-300">Question Text</label>
+                    <div className="mb-5">
+                        <label className="block text-sm font-medium mb-2 text-[var(--foreground)]">Question Text</label>
                         <textarea 
                             value={questionText} 
                             onChange={e => setQuestionText(e.target.value)} 
@@ -296,35 +296,35 @@ export default function QuestionsAdminPage() {
                         />
                     </div>
                     
-                    <div className="mb-6">
+                    <div className="mb-5">
                         <label className="flex items-center space-x-3 cursor-pointer">
                             <input
                                 type="checkbox"
                                 checked={isMultiSelect}
                                 onChange={(e) => setIsMultiSelect(e.target.checked)}
-                                className="w-5 h-5 text-purple-500 bg-gray-600 border-gray-500 rounded focus:ring-purple-500 focus:ring-2"
+                                className="w-4 h-4 text-[var(--primary)] border-[var(--border-hover)] rounded focus:ring-[var(--primary)] focus:ring-2"
                             />
-                            <span className="text-sm font-bold text-gray-300">
+                            <span className="text-sm font-medium text-[var(--foreground)]">
                                 Allow multiple correct answers (Multi-select question)
                             </span>
                         </label>
                         {isMultiSelect && (
-                            <p className="text-xs text-yellow-400 mt-2">
-                                ⚡ Students will need to select ALL correct answers to get this question right.
+                            <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-1.5 mt-2 inline-block">
+                                Students will need to select ALL correct answers to get this question right.
                             </p>
                         )}
                     </div>
-                    <h3 className="text-lg font-semibold mb-4 text-glow-orange">
-                        Options {isMultiSelect && <span className="text-sm text-yellow-400">(Multiple correct answers allowed)</span>}
+                    <h3 className="text-base font-semibold mb-4 text-[var(--foreground)]">
+                        Options {isMultiSelect && <span className="text-sm font-normal text-[var(--foreground-muted)]">(Multiple correct answers allowed)</span>}
                     </h3>
                     {options.map((opt, index) => (
-                        <div key={index} className="flex items-center space-x-3 mb-4 p-4 border border-gray-600/30 rounded-lg bg-gray-700/20">
+                        <div key={index} className="flex items-center space-x-3 mb-3 p-3 border border-[var(--border)] rounded-lg bg-[var(--background-tertiary)]">
                             <input 
                                 type={isMultiSelect ? "checkbox" : "radio"}
                                 name={isMultiSelect ? undefined : "correct-option"}
                                 checked={opt.isCorrect} 
                                 onChange={() => handleCorrectChange(index)} 
-                                className="w-5 h-5 text-green-500 bg-gray-600 border-gray-500 focus:ring-green-500 focus:ring-2"
+                                className="w-4 h-4 text-[var(--success)] border-[var(--border-hover)] focus:ring-[var(--success)] focus:ring-2"
                             />
                             <input 
                                 type="text" 
@@ -344,7 +344,7 @@ export default function QuestionsAdminPage() {
                             <button 
                                 type="button" 
                                 onClick={() => removeOption(index)} 
-                                className="bg-red-600/20 border border-red-500/50 text-red-300 py-2 px-3 rounded-lg hover:bg-red-500/30 hover:scale-105 transition-all"
+                                className="bg-[var(--error-light)] hover:bg-red-100 border border-red-200 text-[var(--error)] py-1.5 px-3 rounded-lg transition-colors"
                             >
                                 ×
                             </button>
@@ -353,14 +353,14 @@ export default function QuestionsAdminPage() {
                     <button 
                         type="button" 
                         onClick={addOption} 
-                        className="text-sm bg-gray-600/30 border border-gray-500/50 text-gray-300 py-2 px-4 rounded-lg hover:bg-gray-500/30 hover:scale-105 transition-all mb-6"
+                        className="text-sm bg-[var(--background-tertiary)] border border-[var(--border)] text-[var(--foreground-muted)] py-2 px-4 rounded-lg hover:bg-[var(--border)] transition-colors mb-6"
                     >
                         + Add Option
                     </button>
-                    <div className="flex justify-between mt-6">
+                    <div className="flex justify-between mt-5">
                         <button 
                             type="submit" 
-                            className="btn-neon-cyan"
+                            className="btn-neon-purple py-2.5 px-6 rounded-lg font-medium"
                         >
                             {isEditing ? 'Update Question' : 'Create Question'}
                         </button>
@@ -368,7 +368,7 @@ export default function QuestionsAdminPage() {
                             <button 
                                 type="button" 
                                 onClick={resetForm} 
-                                className="bg-gray-600/30 border border-gray-500/50 text-gray-300 py-2 px-6 rounded-lg hover:bg-gray-500/30 hover:scale-105 transition-all"
+                                className="bg-[var(--background-tertiary)] hover:bg-[var(--border)] border border-[var(--border)] text-[var(--foreground-muted)] py-2.5 px-6 rounded-lg transition-colors"
                             >
                                 Cancel Edit
                             </button>

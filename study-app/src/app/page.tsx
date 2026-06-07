@@ -58,26 +58,26 @@ export default function HomePage() {
 
   if (loading) {
     return (
-      <main className="container mx-auto p-8 min-h-screen flex justify-center items-center">
+      <main className="container mx-auto p-6 sm:p-8 min-h-screen flex justify-center items-center">
         <div className="text-center">
-          <div className="spinner-neon w-12 h-12 mx-auto mb-4"></div>
-          <div className="text-xl font-semibold text-glow-purple">Loading Certifications...</div>
+          <div className="spinner-neon w-10 h-10 mx-auto mb-4"></div>
+          <div className="text-lg font-medium text-[var(--foreground-muted)]">Loading certifications...</div>
         </div>
       </main>
     );
   }
 
   return (
-    <main className="container mx-auto p-8 min-h-screen">
-      <div className="text-center mb-12">
-        <h1 className="text-5xl font-bold text-glow-purple pulse-glow mb-4">Study Certifications</h1>
-        <p className="text-xl text-gray-300">Choose a certification to start your learning journey</p>
+    <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 min-h-screen max-w-6xl">
+      <div className="text-center mb-10 sm:mb-14">
+        <h1 className="text-3xl sm:text-4xl font-bold text-[var(--foreground)] mb-3">Study Certifications</h1>
+        <p className="text-base sm:text-lg text-[var(--foreground-muted)]">Choose a certification to start your learning journey</p>
       </div>
 
       {error && (
-        <div className="text-red-400 bg-red-900/20 border border-red-500/30 p-4 rounded-lg mb-8 backdrop-blur-sm">
+        <div className="text-[var(--error)] bg-[var(--error-light)] border border-red-200 p-4 rounded-lg mb-8">
           <div className="flex items-center">
-            <span className="text-red-400">⚠️</span>
+            <span>⚠️</span>
             <span className="ml-2">{error}</span>
           </div>
         </div>
@@ -88,19 +88,18 @@ export default function HomePage() {
           {certifications.map((cert) => {
             const ratingStats = ratings[cert.id];
             return (
-              <div key={cert.id} className="card-dark p-8 rounded-xl h-full transition-all duration-300 group relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-orange-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <div className="relative z-10">
-                  <h2 className="mb-4 text-2xl font-bold tracking-tight text-glow-purple group-hover:text-glow-orange transition-all duration-300">
+              <div key={cert.id} className="card-dark p-6 sm:p-8 rounded-xl h-full transition-all duration-200 group">
+                <div>
+                  <h2 className="mb-3 text-xl font-semibold tracking-tight text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors duration-200">
                     {cert.name}
                   </h2>
-                  <p className="font-normal text-gray-300 mb-4 leading-relaxed">
+                  <p className="font-normal text-[var(--foreground-muted)] mb-4 leading-relaxed text-sm">
                     {cert.description || 'No description available.'}
                   </p>
                   
                   {/* Rating Display */}
                   {ratingStats && ratingStats.totalRatings > 0 ? (
-                    <div className="mb-4 p-3 bg-gray-700/30 rounded-lg border border-gray-600/30">
+                    <div className="mb-4 p-3 bg-[var(--background-secondary)] rounded-lg border border-[var(--border)]">
                       <div className="flex items-center justify-between">
                         <StarRating 
                           rating={ratingStats.averageRating} 
@@ -108,35 +107,35 @@ export default function HomePage() {
                           size="sm" 
                           showText={false}
                         />
-                        <span className="text-sm text-gray-400">
+                        <span className="text-sm text-[var(--foreground-muted)]">
                           {ratingStats.averageRating} ({ratingStats.totalRatings})
                         </span>
                       </div>
                       <Link 
                         href={`/certifications/${cert.id}/ratings`}
-                        className="text-xs text-purple-400 hover:text-orange-400 transition-colors mt-1 block"
+                        className="text-xs text-[var(--primary)] hover:text-[var(--primary-light)] transition-colors mt-1 block"
                       >
                         View all reviews →
                       </Link>
                     </div>
                   ) : (
-                    <div className="mb-4 p-3 bg-gray-700/20 rounded-lg border border-gray-600/20">
-                      <span className="text-xs text-gray-500">No ratings yet</span>
+                    <div className="mb-4 p-3 bg-[var(--background-secondary)] rounded-lg border border-[var(--border)]">
+                      <span className="text-xs text-[var(--foreground-muted)]">No ratings yet</span>
                     </div>
                   )}
 
                   <div className="flex items-center justify-between">
                     {cert.isAdobe && (
-                      <span className="inline-block bg-gradient-to-r from-red-500/20 to-orange-500/20 text-orange-300 text-xs font-semibold px-3 py-1 rounded-full border border-orange-500/30">
+                      <span className="inline-block bg-red-50 text-red-700 text-xs font-medium px-3 py-1 rounded-full border border-red-200">
                         Adobe
                       </span>
                     )}
                     {user ? (
-                      <Link href={`/quiz/${cert.id}`} className="text-purple-400 hover:text-orange-400 transition-colors duration-300 font-semibold">
+                      <Link href={`/quiz/${cert.id}`} className="text-[var(--primary)] hover:text-[var(--primary-light)] transition-colors duration-200 font-semibold text-sm">
                         Start Quiz →
                       </Link>
                     ) : (
-                      <Link href="/auth" className="text-gray-500 hover:text-purple-400 transition-colors duration-300 font-semibold">
+                      <Link href="/auth" className="text-[var(--foreground-muted)] hover:text-[var(--primary)] transition-colors duration-200 font-semibold text-sm">
                         Sign In to Start →
                       </Link>
                     )}

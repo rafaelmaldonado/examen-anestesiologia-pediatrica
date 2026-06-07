@@ -61,8 +61,8 @@ export default function CertificationRatingsPage() {
     return (
       <div className="flex justify-center items-center h-screen">
         <div className="text-center">
-          <div className="spinner-neon w-12 h-12 mx-auto mb-4"></div>
-          <div className="text-xl font-semibold text-glow-purple">Loading Ratings...</div>
+          <div className="spinner-neon w-10 h-10 mx-auto mb-4"></div>
+          <div className="text-lg font-medium text-[var(--foreground-muted)]">Loading ratings...</div>
         </div>
       </div>
     );
@@ -72,9 +72,9 @@ export default function CertificationRatingsPage() {
     return (
       <div className="container mx-auto p-8 min-h-screen">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-red-500 mb-4">Error</h1>
-          <p className="text-lg text-gray-300 mb-6">{error || 'Certification not found'}</p>
-          <Link href="/" className="btn-primary px-6 py-3 rounded-lg text-white font-semibold hover:bg-purple-700 transition-colors">
+          <h1 className="text-2xl font-bold text-[var(--error)] mb-4">Error</h1>
+          <p className="text-[var(--foreground-muted)] mb-6">{error || 'Certification not found'}</p>
+          <Link href="/" className="btn-neon-purple px-6 py-3 rounded-lg font-medium">
             Return to Home
           </Link>
         </div>
@@ -83,15 +83,15 @@ export default function CertificationRatingsPage() {
   }
 
   return (
-    <div className="container mx-auto p-8 max-w-4xl min-h-screen">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-3xl min-h-screen">
       <div className="mb-8">
-        <Link href="/" className="text-purple-400 hover:text-orange-400 transition-colors mb-4 inline-block">
+        <Link href="/" className="text-[var(--primary)] hover:text-[var(--primary-light)] transition-colors mb-4 inline-block text-sm">
           ← Back to Certifications
         </Link>
-        <h1 className="text-4xl font-bold text-glow-purple mb-2">{certification.name}</h1>
-        <p className="text-lg text-gray-300">{certification.description}</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-[var(--foreground)] mb-2">{certification.name}</h1>
+        <p className="text-[var(--foreground-muted)]">{certification.description}</p>
         {certification.isAdobe && (
-          <span className="inline-block mt-3 bg-gradient-to-r from-red-500/20 to-orange-500/20 text-orange-300 text-sm font-semibold px-4 py-2 rounded-full border border-orange-500/30">
+          <span className="inline-block mt-3 bg-red-50 text-red-700 text-sm font-medium px-4 py-1.5 rounded-full border border-red-200">
             Adobe Certification
           </span>
         )}
@@ -99,16 +99,16 @@ export default function CertificationRatingsPage() {
 
       <div className="mb-8">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-200">Student Reviews & Ratings</h2>
+          <h2 className="text-xl font-semibold text-[var(--foreground)]">Student Reviews & Ratings</h2>
           {accessStatus?.canTakeQuiz ? (
             <Link 
               href={`/quiz/${certificationId}`}
-              className="btn-neon-purple px-6 py-3 rounded-lg font-semibold hover:scale-105 transition-transform"
+              className="btn-neon-purple px-5 py-2.5 rounded-lg font-medium text-sm"
             >
               {accessStatus.hasUsedFreeTrial && !accessStatus.hasPaidAccess ? 'Continue Quiz' : 'Take Quiz'}
             </Link>
           ) : (
-            <div className="text-sm text-gray-400">
+            <div className="text-sm text-[var(--foreground-muted)]">
               {!checkingAccess && 'Login to take quiz'}
             </div>
           )}
@@ -129,9 +129,9 @@ export default function CertificationRatingsPage() {
 
         {/* Show free trial info */}
         {!accessStatus?.hasPaidAccess && !certification?.isFree && !accessStatus?.hasUsedFreeTrial && (
-          <div className="mb-6 p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
-            <h3 className="text-blue-400 font-semibold mb-2">🎯 Free Trial Available</h3>
-            <p className="text-gray-300 text-sm">
+          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <h3 className="text-blue-800 font-semibold mb-1">🎯 Free Trial Available</h3>
+            <p className="text-blue-700 text-sm">
               Try this certification for free! You get one free quiz attempt before needing to purchase full access.
             </p>
           </div>

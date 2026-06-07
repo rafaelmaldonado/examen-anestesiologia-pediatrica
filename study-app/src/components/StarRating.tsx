@@ -65,9 +65,9 @@ export default function StarRating({
           >
             <svg
               className={`w-full h-full ${
-                star <= displayRating
-                  ? 'text-yellow-400 fill-current'
-                  : 'text-gray-300 hover:text-yellow-200'
+              star <= displayRating
+                  ? 'text-amber-400 fill-current'
+                  : 'text-gray-300 hover:text-amber-200'
               } transition-colors duration-200`}
               viewBox="0 0 20 20"
             >

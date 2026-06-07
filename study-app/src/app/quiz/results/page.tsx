@@ -105,8 +105,8 @@ export default function ResultsPage() {
         return (
             <div className="flex justify-center items-center h-screen">
                 <div className="text-center">
-                    <div className="spinner-neon w-12 h-12 mx-auto mb-4"></div>
-                    <div className="text-xl font-semibold text-glow-purple">Loading Results...</div>
+                    <div className="spinner-neon w-10 h-10 mx-auto mb-4"></div>
+                    <div className="text-lg font-medium text-[var(--foreground-muted)]">Loading results...</div>
                 </div>
             </div>
         );
@@ -115,8 +115,8 @@ export default function ResultsPage() {
     if (!results) {
         return (
             <div className="flex flex-col justify-center items-center h-screen">
-                <div className="text-center card-dark p-8 rounded-2xl">
-                    <p className="text-xl font-semibold text-gray-300 mb-4">No results found.</p>
+                <div className="text-center card-dark p-8 rounded-xl">
+                    <p className="text-lg font-medium text-[var(--foreground-muted)] mb-4">No results found.</p>
                     <Link href="/">
                         <span className="btn-neon-purple py-2 px-6 rounded-lg inline-block">Go back to home</span>
                     </Link>
@@ -126,37 +126,36 @@ export default function ResultsPage() {
     }
 
     return (
-        <div className="container mx-auto p-4 sm:p-8 max-w-5xl min-h-screen">
+        <div className="container mx-auto p-4 sm:p-8 max-w-4xl min-h-screen">
             <div className="text-center mb-8">
-                <h1 className="text-4xl font-bold mb-4 text-glow-purple">Quiz Results</h1>
-                <p className="text-gray-300">Here's how you performed on your certification quiz</p>
+                <h1 className="text-2xl sm:text-3xl font-bold mb-2 text-[var(--foreground)]">Quiz Results</h1>
+                <p className="text-[var(--foreground-muted)]">Here's how you performed on your certification quiz</p>
             </div>
             
-            <div className="text-center mb-8 card-dark p-8 rounded-2xl">
-                <p className="text-2xl text-gray-300 mb-4">Your Final Score:</p>
-                <p className={`text-7xl font-bold mb-4 ${results.score >= 75 ? 'text-glow-cyan' : 'text-glow-orange'}`}>
+            <div className="text-center mb-8 card-dark p-8 rounded-xl">
+                <p className="text-lg text-[var(--foreground-muted)] mb-3">Your Final Score:</p>
+                <p className={`text-6xl font-bold mb-4 ${results.score >= 75 ? 'text-[var(--success)]' : 'text-[var(--accent)]'}`}>
                     {results.score}%
                 </p>
-                <div className="w-full bg-gray-700 rounded-full h-3 mb-4">
+                <div className="w-full bg-[var(--background-tertiary)] rounded-full h-2.5 mb-4">
                     <div 
-                        className={`h-3 rounded-full transition-all duration-1000 ${results.score >= 75 ? 'bg-gradient-to-r from-green-400 to-cyan-400' : 'bg-gradient-to-r from-orange-400 to-red-400'}`}
+                        className={`h-2.5 rounded-full transition-all duration-1000 ${results.score >= 75 ? 'bg-[var(--success)]' : 'bg-[var(--accent)]'}`}
                         style={{width: `${results.score}%`}}
                     ></div>
                 </div>
-                <p className="text-gray-400">
+                <p className="text-[var(--foreground-muted)]">
                     {results.score >= 75 ? '🎉 Congratulations! You passed!' : '📚 Keep studying and try again!'}
                 </p>
                 
-                {/* Rating Button - only show if we have certification info and passed */}
                 {certification && results.score >= 75 && (
-                    <div className="mt-6 pt-6 border-t border-gray-700">
+                    <div className="mt-6 pt-6 border-t border-[var(--border)]">
                         <button
                             onClick={() => setShowRatingForm(true)}
-                            className="btn-neon-orange font-bold py-3 px-6 rounded-lg text-lg hover:scale-105 transition-transform"
+                            className="btn-neon-orange font-medium py-3 px-6 rounded-lg text-lg hover:scale-[1.02] transition-transform"
                         >
                             ⭐ Rate This Certification
                         </button>
-                        <p className="text-sm text-gray-400 mt-2">
+                        <p className="text-sm text-[var(--foreground-muted)] mt-2">
                             Help others by sharing your experience
                         </p>
                     </div>
@@ -166,10 +165,10 @@ export default function ResultsPage() {
             <div className="space-y-6">
                 {results.results.map((res, index) => (
                     <div key={res.questionId} className="card-dark p-6 rounded-xl">
-                        <h3 className="font-bold text-xl mb-4 text-gray-200">
+                        <h3 className="font-semibold text-lg mb-4 text-[var(--foreground)]">
                             Question {index + 1}: {res.questionText}
                             {res.isMultiSelect && (
-                                <span className="ml-2 text-sm font-normal text-yellow-400">
+                                <span className="ml-2 text-sm font-normal text-[var(--accent)]">
                                     (Multi-select)
                                 </span>
                             )}
@@ -182,11 +181,11 @@ export default function ResultsPage() {
 
                                 let itemClass = 'p-4 rounded-lg border-2 transition-all';
                                 if (isCorrect) {
-                                    itemClass += ' bg-green-500/20 border-green-400 text-green-300';
+                                    itemClass += ' bg-[var(--success-light)] border-green-300 text-green-800';
                                 } else if (isSelected && !isCorrect) {
-                                    itemClass += ' bg-red-500/20 border-red-400 text-red-300';
+                                    itemClass += ' bg-[var(--error-light)] border-red-300 text-red-800';
                                 } else {
-                                    itemClass += ' bg-gray-600/20 border-gray-500 text-gray-300';
+                                    itemClass += ' bg-[var(--background-secondary)] border-[var(--border)] text-[var(--foreground-muted)]';
                                 }
 
                                 return (
@@ -195,12 +194,12 @@ export default function ResultsPage() {
                                             <p className="font-medium">{opt.optionText}</p>
                                             <div className="flex items-center space-x-2">
                                                 {isSelected && (
-                                                    <span className="text-sm px-2 py-1 rounded bg-blue-500/20 text-blue-300">
+                                                    <span className="text-sm px-2 py-1 rounded bg-blue-50 text-blue-700 border border-blue-200">
                                                         Your Answer
                                                     </span>
                                                 )}
                                                 {isCorrect && (
-                                                    <span className="text-sm px-2 py-1 rounded bg-green-500/20 text-green-300">
+                                                    <span className="text-sm px-2 py-1 rounded bg-[var(--success-light)] text-green-700 border border-green-200">
                                                         ✓ Correct
                                                     </span>
                                                 )}
@@ -212,9 +211,9 @@ export default function ResultsPage() {
                         </div>
 
                         {!res.isCorrect && res.correctOptions.length > 0 && res.correctOptions[0].explanation && (
-                            <div className="mt-4 p-4 bg-yellow-500/20 border border-yellow-400/30 text-yellow-300 rounded-lg">
-                                <h4 className="font-bold mb-2 text-yellow-200">💡 Explanation:</h4>
-                                <p>{res.correctOptions[0].explanation}</p>
+                            <div className="mt-4 p-4 bg-[var(--accent-lighter)] border border-amber-200 text-amber-900 rounded-lg">
+                                <h4 className="font-semibold mb-1">💡 Explanation:</h4>
+                                <p className="text-sm">{res.correctOptions[0].explanation}</p>
                             </div>
                         )}
                     </div>
@@ -224,12 +223,12 @@ export default function ResultsPage() {
             <div className="text-center mt-12">
                 <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                     <Link href="/">
-                        <span className="btn-neon-purple font-bold py-3 px-8 rounded-lg text-lg">
+                        <span className="btn-neon-purple font-medium py-3 px-8 rounded-lg">
                             🏠 Back to Home
                         </span>
                     </Link>
                     <Link href="/history">
-                        <span className="btn-neon-orange font-bold py-3 px-8 rounded-lg text-lg">
+                        <span className="btn-neon-orange font-medium py-3 px-8 rounded-lg">
                             📊 View History
                         </span>
                     </Link>

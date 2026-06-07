@@ -102,18 +102,18 @@ export default function SocialAuth({ mode, onSuccess }: SocialAuthProps) {
     return (
       <div className="space-y-6">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-glow-purple mb-2">Reset Password</h2>
-          <p className="text-gray-300">Enter your email to receive a reset link</p>
+          <h2 className="text-2xl font-bold text-[var(--foreground)] mb-2">Reset Password</h2>
+          <p className="text-[var(--foreground-muted)]">Enter your email to receive a reset link</p>
         </div>
 
         {resetMessage && (
-          <div className="bg-green-500/20 border border-green-500/50 rounded-lg p-3 text-green-300 text-sm">
+          <div className="bg-[var(--success-light)] border border-green-200 rounded-lg p-3 text-green-800 text-sm">
             {resetMessage}
           </div>
         )}
 
         {error && (
-          <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-3 text-red-300 text-sm">
+          <div className="bg-[var(--error-light)] border border-red-200 rounded-lg p-3 text-red-800 text-sm">
             {error}
           </div>
         )}
@@ -125,13 +125,13 @@ export default function SocialAuth({ mode, onSuccess }: SocialAuthProps) {
             value={resetEmail}
             onChange={(e) => setResetEmail(e.target.value)}
             required
-            className="w-full p-3 bg-white/10 border border-purple-500/30 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none"
+            className="w-full p-3 bg-[var(--background-secondary)] border border-[var(--border)] rounded-lg text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:border-[var(--primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary-lighter)]"
           />
           
           <button
             type="submit"
             disabled={loading === 'reset'}
-            className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition-all duration-300 disabled:opacity-50"
+            className="w-full btn-neon-purple py-3 rounded-lg font-medium disabled:opacity-50"
           >
             {loading === 'reset' ? 'Sending...' : 'Send Reset Email'}
           </button>
@@ -139,7 +139,7 @@ export default function SocialAuth({ mode, onSuccess }: SocialAuthProps) {
 
         <button
           onClick={() => setShowPasswordReset(false)}
-          className="w-full text-gray-400 hover:text-white text-sm"
+          className="w-full text-[var(--foreground-muted)] hover:text-[var(--foreground)] text-sm"
         >
           ← Back to login
         </button>
@@ -151,14 +151,14 @@ export default function SocialAuth({ mode, onSuccess }: SocialAuthProps) {
     return (
       <div className="space-y-6">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-glow-purple mb-2">
+          <h2 className="text-2xl font-bold text-[var(--foreground)] mb-2">
             {mode === 'signup' ? 'Create Account' : 'Sign In'}
           </h2>
-          <p className="text-gray-300">Enter your email and password</p>
+          <p className="text-[var(--foreground-muted)]">Enter your email and password</p>
         </div>
 
         {error && (
-          <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-3 text-red-300 text-sm">
+          <div className="bg-[var(--error-light)] border border-red-200 rounded-lg p-3 text-red-800 text-sm">
             {error}
           </div>
         )}
@@ -170,7 +170,7 @@ export default function SocialAuth({ mode, onSuccess }: SocialAuthProps) {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="w-full p-3 bg-white/10 border border-purple-500/30 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none"
+            className="w-full p-3 bg-[var(--background-secondary)] border border-[var(--border)] rounded-lg text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:border-[var(--primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary-lighter)]"
           />
           
           <input
@@ -179,13 +179,13 @@ export default function SocialAuth({ mode, onSuccess }: SocialAuthProps) {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            className="w-full p-3 bg-white/10 border border-purple-500/30 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none"
+            className="w-full p-3 bg-[var(--background-secondary)] border border-[var(--border)] rounded-lg text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:border-[var(--primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary-lighter)]"
           />
           
           <button
             type="submit"
             disabled={loading === 'email'}
-            className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition-all duration-300 disabled:opacity-50"
+            className="w-full btn-neon-purple py-3 rounded-lg font-medium disabled:opacity-50"
           >
             {loading === 'email' ? 'Processing...' : (mode === 'signup' ? 'Create Account' : 'Sign In')}
           </button>
@@ -194,7 +194,7 @@ export default function SocialAuth({ mode, onSuccess }: SocialAuthProps) {
         {mode === 'signin' && (
           <button
             onClick={() => setShowPasswordReset(true)}
-            className="w-full text-gray-400 hover:text-white text-sm"
+            className="w-full text-[var(--foreground-muted)] hover:text-[var(--foreground)] text-sm"
           >
             Forgot your password?
           </button>
@@ -202,7 +202,7 @@ export default function SocialAuth({ mode, onSuccess }: SocialAuthProps) {
 
         <button
           onClick={() => setShowEmailForm(false)}
-          className="w-full text-gray-400 hover:text-white text-sm"
+          className="w-full text-[var(--foreground-muted)] hover:text-[var(--foreground)] text-sm"
         >
           ← Back to social options
         </button>
@@ -213,14 +213,14 @@ export default function SocialAuth({ mode, onSuccess }: SocialAuthProps) {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-glow-purple mb-2">
-          {mode === 'signup' ? 'Create Account' : 'Welcome Back'}
-        </h2>
-        <p className="text-gray-300">Choose your preferred sign-in method</p>
-      </div>
+<h2 className="text-2xl font-bold text-[var(--foreground)] mb-2">
+            {mode === 'signup' ? 'Create Account' : 'Welcome Back'}
+          </h2>
+          <p className="text-[var(--foreground-muted)]">Choose your preferred sign-in method</p>
+        </div>
 
-      {error && (
-        <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-3 text-red-300 text-sm">
+        {error && (
+          <div className="bg-[var(--error-light)] border border-red-200 rounded-lg p-3 text-red-800 text-sm">
           {error}
         </div>
       )}
@@ -229,7 +229,7 @@ export default function SocialAuth({ mode, onSuccess }: SocialAuthProps) {
         <button
           onClick={() => handleSocialAuth('google')}
           disabled={loading === 'google'}
-          className="w-full bg-white text-gray-900 py-3 px-4 rounded-lg font-semibold hover:bg-gray-100 transition-all duration-300 flex items-center justify-center space-x-3 disabled:opacity-50"
+          className="w-full bg-white text-gray-700 py-3 px-4 rounded-lg font-medium hover:bg-gray-50 transition-colors border border-[var(--border)] flex items-center justify-center space-x-3 disabled:opacity-50"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -243,7 +243,7 @@ export default function SocialAuth({ mode, onSuccess }: SocialAuthProps) {
         <button
           onClick={() => handleSocialAuth('facebook')}
           disabled={loading === 'facebook'}
-          className="w-full bg-[#1877F2] text-white py-3 px-4 rounded-lg font-semibold hover:bg-[#166FE5] transition-all duration-300 flex items-center justify-center space-x-3 disabled:opacity-50"
+          className="w-full bg-[#1877F2] text-white py-3 px-4 rounded-lg font-medium hover:bg-[#166FE5] transition-colors flex items-center justify-center space-x-3 disabled:opacity-50"
         >
           <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
             <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
@@ -253,16 +253,16 @@ export default function SocialAuth({ mode, onSuccess }: SocialAuthProps) {
 
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-600"></div>
+            <div className="w-full border-t border-[var(--border)]"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="bg-purple-900 px-2 text-gray-400">Or</span>
+            <span className="bg-[var(--card-bg)] px-3 text-[var(--foreground-muted)]">Or</span>
           </div>
         </div>
 
         <button
           onClick={() => setShowEmailForm(true)}
-          className="w-full bg-transparent border-2 border-purple-500/30 text-white py-3 px-4 rounded-lg font-semibold hover:border-purple-500 hover:bg-purple-500/10 transition-all duration-300"
+          className="w-full bg-transparent border-2 border-[var(--border)] text-[var(--foreground)] py-3 px-4 rounded-lg font-medium hover:border-[var(--primary)] hover:bg-[var(--primary-lighter)] transition-colors"
         >
           Continue with Email
         </button>

@@ -73,10 +73,10 @@ export default function PaymentButton({
   return (
     <div className="card-dark p-6 rounded-xl">
       <div className="text-center">
-        <h3 className="text-xl font-bold text-gray-200 mb-2">
+        <h3 className="text-lg font-semibold text-[var(--foreground)] mb-2">
           {isFree ? 'Free Access' : 'Purchase Full Access'}
         </h3>
-        <p className="text-gray-400 mb-4">
+        <p className="text-[var(--foreground-muted)] text-sm mb-4">
           {isFree 
             ? 'This certification is completely free!'
             : `Get unlimited quiz attempts for ${certificationName}`
@@ -84,7 +84,7 @@ export default function PaymentButton({
         </p>
         
         {!isFree && (
-          <div className="text-3xl font-bold text-glow-purple mb-4">
+          <div className="text-3xl font-bold text-[var(--primary)] mb-4">
             ${displayPrice}
           </div>
         )}
@@ -92,10 +92,10 @@ export default function PaymentButton({
         <button
           onClick={handlePayment}
           disabled={loading}
-          className={`w-full py-3 px-6 rounded-lg font-semibold transition-all ${
+          className={`w-full py-3 px-6 rounded-lg font-medium transition-all ${
             isFree 
               ? 'btn-neon-green' 
-              : 'btn-neon-purple hover:scale-105'
+              : 'btn-neon-purple'
           } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
           {loading ? (
@@ -109,7 +109,7 @@ export default function PaymentButton({
         </button>
 
         {!isFree && (
-          <div className="mt-4 text-sm text-gray-400">
+          <div className="mt-4 text-sm text-[var(--foreground-muted)]">
             <p>✓ Unlimited quiz attempts</p>
             <p>✓ Detailed explanations</p>
             <p>✓ Progress tracking</p>

@@ -55,7 +55,7 @@ export default function Navigation() {
   return (
     <nav className="nav-dark sticky top-0 z-40 p-4">
       <div className="container mx-auto flex justify-between items-center">
-        <Link href="/" className="text-xl font-bold text-glow-purple">
+        <Link href="/" className="text-xl font-bold text-[var(--foreground)]">
           📚 Study App
         </Link>
         
@@ -64,16 +64,16 @@ export default function Navigation() {
             <>
               <Link 
                 href="/" 
-                className={`hover:text-glow-orange transition-all duration-300 ${
-                  pathname === '/' ? 'text-glow-purple' : 'text-gray-300'
+                className={`hover:text-[var(--primary)] transition-colors duration-200 text-sm font-medium ${
+                  pathname === '/' ? 'text-[var(--primary)]' : 'text-[var(--foreground-muted)]'
                 }`}
               >
                 Home
               </Link>
               <Link 
                 href="/history" 
-                className={`hover:text-glow-orange transition-all duration-300 ${
-                  pathname === '/history' ? 'text-glow-purple' : 'text-gray-300'
+                className={`hover:text-[var(--primary)] transition-colors duration-200 text-sm font-medium ${
+                  pathname === '/history' ? 'text-[var(--primary)]' : 'text-[var(--foreground-muted)]'
                 }`}
               >
                 History
@@ -83,20 +83,20 @@ export default function Navigation() {
               <div className="relative user-menu">
                 <button
                   onClick={() => setShowUserMenu(!showUserMenu)}
-                  className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-orange-500 flex items-center justify-center text-white font-bold text-sm hover:scale-110 transition-all duration-300"
+                  className="w-8 h-8 rounded-full bg-[var(--primary)] flex items-center justify-center text-white font-semibold text-sm hover:bg-[var(--primary-light)] transition-colors duration-200"
                 >
                   {user.email?.charAt(0).toUpperCase()}
                 </button>
                 
                 {showUserMenu && (
-                  <div className="absolute right-0 mt-2 w-48 card-dark rounded-lg shadow-lg border border-gray-600/30 z-50">
-                    <div className="py-2">
-                      <div className="px-4 py-2 text-sm text-gray-400 border-b border-gray-600/30">
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-[var(--border)] z-50">
+                    <div className="py-1">
+                      <div className="px-4 py-2 text-sm text-[var(--foreground-muted)] border-b border-[var(--border)]">
                         {user.email}
                       </div>
                       <button
                         onClick={handleLogout}
-                        className="w-full text-left px-4 py-2 text-sm text-red-300 hover:bg-red-600/20 hover:text-red-200 transition-all duration-300"
+                        className="w-full text-left px-4 py-2 text-sm text-[var(--error)] hover:bg-[var(--error-light)] transition-colors duration-200"
                       >
                         Sign Out
                       </button>
@@ -108,7 +108,7 @@ export default function Navigation() {
           ) : (
             <Link 
               href="/auth" 
-              className="btn-neon-purple py-2 px-4 rounded-lg text-sm font-semibold"
+              className="btn-neon-purple py-2 px-5 rounded-lg text-sm font-medium"
             >
               Sign In
             </Link>

@@ -100,67 +100,67 @@ export default function CertificationsAdminPage() {
             <div className="container mx-auto p-8 max-w-6xl min-h-screen">
             <div className="flex justify-between items-center mb-8">
                 <div>
-                    <h1 className="text-3xl font-bold text-glow-purple mb-2">Manage Certifications</h1>
-                    <p className="text-gray-400">Create and manage certification categories</p>
+                    <h1 className="text-2xl font-bold text-[var(--foreground)] mb-1">Manage Certifications</h1>
+                    <p className="text-sm text-[var(--foreground-muted)]">Create and manage certification categories</p>
                 </div>
-                <Link href="/admin" className="btn-neon-orange py-2 px-4 rounded-lg">
+                <Link href="/admin" className="btn-neon-purple py-2 px-4 rounded-lg text-sm font-medium">
                     ← Back to Dashboard
                 </Link>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2">
-                    <h2 className="text-2xl font-semibold mb-6 text-gray-200">Existing Certifications</h2>
+                    <h2 className="text-xl font-semibold mb-5 text-[var(--foreground)]">Existing Certifications</h2>
                     {loading && (
                         <div className="text-center py-8">
                             <div className="spinner-neon w-8 h-8 mx-auto mb-4"></div>
-                            <p className="text-gray-400">Loading...</p>
+                            <p className="text-[var(--foreground-muted)]">Loading...</p>
                         </div>
                     )}
                     {error && (
-                        <p className="text-red-400 bg-red-900/20 border border-red-500/30 p-4 rounded-lg mb-4">
+                        <p className="text-[var(--error)] bg-[var(--error-light)] border border-red-200 p-4 rounded-lg mb-4">
                             {error}
                         </p>
                     )}
                     <div className="space-y-4">
                         {certifications.map(cert => (
-                            <div key={cert.id} className="card-dark p-6 rounded-xl flex justify-between items-center">
+                            <div key={cert.id} className="card-dark p-5 rounded-xl flex justify-between items-center">
                                 <div className="flex-1">
-                                    <div className="flex items-center space-x-3 mb-2">
-                                        <h3 className="font-bold text-lg text-gray-200">{cert.name}</h3>
+                                    <div className="flex items-center space-x-2 mb-1">
+                                        <h3 className="font-semibold text-[var(--foreground)]">{cert.name}</h3>
                                         {cert.isAdobe && (
-                                            <span className="bg-red-500/20 text-red-400 text-xs px-2 py-1 rounded-full border border-red-500/30">
+                                            <span className="bg-red-50 text-red-700 text-xs px-2 py-0.5 rounded-full border border-red-200">
                                                 Adobe
                                             </span>
                                         )}
                                         {cert.isFree ? (
-                                            <span className="bg-green-500/20 text-green-400 text-xs px-2 py-1 rounded-full border border-green-500/30">
+                                            <span className="bg-[var(--success-light)] text-green-700 text-xs px-2 py-0.5 rounded-full border border-green-200">
                                                 Free
                                             </span>
                                         ) : (
-                                            <span className="bg-blue-500/20 text-blue-400 text-xs px-2 py-1 rounded-full border border-blue-500/30">
+                                            <span className="bg-blue-50 text-blue-700 text-xs px-2 py-0.5 rounded-full border border-blue-200">
                                                 ${cert.price ? (cert.price / 100).toFixed(2) : '29.99'}
                                             </span>
                                         )}
                                     </div>
-                                    <p className="text-sm text-gray-400">{cert.description || 'No description'}</p>
+                                    <p className="text-sm text-[var(--foreground-muted)]">{cert.description || 'No description'}</p>
                                 </div>
-                                <div className="flex items-center space-x-3 ml-4">
+                                <div className="flex items-center space-x-2 ml-4">
                                     <Link 
                                         href={`/admin/questions/${cert.id}`}
-                                        className="bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/50 text-blue-400 hover:text-blue-300 px-3 py-2 rounded-lg transition-all text-sm"
+                                        className="bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 px-3 py-1.5 rounded-lg transition-colors text-sm"
                                     >
                                         Questions
                                     </Link>
                                     <button 
                                         onClick={() => handleEdit(cert)} 
-                                        className="bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-500/50 text-yellow-400 hover:text-yellow-300 px-3 py-2 rounded-lg transition-all text-sm"
+                                        className="bg-[var(--accent-lighter)] hover:bg-amber-100 border border-amber-200 text-amber-700 px-3 py-1.5 rounded-lg transition-colors text-sm"
                                     >
                                         Edit
                                     </button>
                                     <button 
                                         onClick={() => handleDelete(cert.id)} 
-                                        className="bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 text-red-400 hover:text-red-300 px-3 py-2 rounded-lg transition-all text-sm"
+                                        className="bg-[var(--error-light)] hover:bg-red-100 border border-red-200 text-[var(--error)] px-3 py-1.5 rounded-lg transition-colors text-sm"
                                     >
                                         Delete
                                     </button>
@@ -171,28 +171,28 @@ export default function CertificationsAdminPage() {
                 </div>
 
                 <div>
-                    <h2 className="text-2xl font-semibold mb-6 text-gray-200">
+                    <h2 className="text-xl font-semibold mb-5 text-[var(--foreground)]">
                         {isEditing ? 'Edit Certification' : 'Add New Certification'}
                     </h2>
                     <div className="card-dark p-6 rounded-xl">
-                        <form onSubmit={handleSubmit} className="space-y-6">
+                        <form onSubmit={handleSubmit} className="space-y-5">
                             <div>
-                                <label className="block text-sm font-semibold mb-3 text-gray-300">Name</label>
+                                <label className="block text-sm font-medium mb-2 text-[var(--foreground)]">Name</label>
                                 <input 
                                     type="text" 
                                     value={name} 
                                     onChange={e => setName(e.target.value)} 
-                                    className="input-neon w-full px-4 py-3 rounded-lg" 
+                                    className="input-neon w-full px-4 py-2.5 rounded-lg" 
                                     placeholder="Certification name"
                                     required 
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold mb-3 text-gray-300">Description</label>
+                                <label className="block text-sm font-medium mb-2 text-[var(--foreground)]">Description</label>
                                 <textarea 
                                     value={description} 
                                     onChange={e => setDescription(e.target.value)} 
-                                    className="input-neon w-full px-4 py-3 rounded-lg h-32 resize-none" 
+                                    className="input-neon w-full px-4 py-2.5 rounded-lg h-28 resize-none" 
                                     placeholder="Brief description of the certification"
                                 />
                             </div>
@@ -202,43 +202,43 @@ export default function CertificationsAdminPage() {
                                         type="checkbox" 
                                         checked={isAdobe} 
                                         onChange={e => setIsAdobe(e.target.checked)} 
-                                        className="w-5 h-5 text-purple-500 bg-transparent border-2 border-purple-500/50 rounded focus:ring-purple-500 focus:ring-2"
+                                        className="w-4 h-4 text-[var(--primary)] border-[var(--border-hover)] rounded focus:ring-[var(--primary)] focus:ring-2"
                                     />
-                                    <span className="text-sm text-gray-300">Is this an Adobe Certification?</span>
+                                    <span className="text-sm text-[var(--foreground)]">Is this an Adobe Certification?</span>
                                 </label>
                             </div>
                             <div>
-                                <label className="flex items-center space-x-3 mb-4">
+                                <label className="flex items-center space-x-3 mb-3">
                                     <input 
                                         type="checkbox" 
                                         checked={isFree} 
                                         onChange={e => setIsFree(e.target.checked)} 
-                                        className="w-5 h-5 text-green-500 bg-transparent border-2 border-green-500/50 rounded focus:ring-green-500 focus:ring-2"
+                                        className="w-4 h-4 text-[var(--success)] border-[var(--border-hover)] rounded focus:ring-[var(--success)] focus:ring-2"
                                     />
-                                    <span className="text-sm text-gray-300">Free certification (no payment required)</span>
+                                    <span className="text-sm text-[var(--foreground)]">Free certification (no payment required)</span>
                                 </label>
                                 {!isFree && (
                                     <div>
-                                        <label className="block text-sm font-semibold mb-3 text-gray-300">Price (USD)</label>
+                                        <label className="block text-sm font-medium mb-2 text-[var(--foreground)]">Price (USD)</label>
                                         <input 
                                             type="number" 
                                             value={price} 
                                             onChange={e => setPrice(e.target.value === '' ? '' : parseFloat(e.target.value))} 
-                                            className="input-neon w-full px-4 py-3 rounded-lg" 
+                                            className="input-neon w-full px-4 py-2.5 rounded-lg" 
                                             placeholder="29.99"
                                             min="0"
                                             step="0.01"
                                         />
-                                        <p className="text-xs text-gray-400 mt-2">
+                                        <p className="text-xs text-[var(--foreground-muted)] mt-1">
                                             Leave empty to use default price ($29.99)
                                         </p>
                                     </div>
                                 )}
                             </div>
-                            <div className="flex justify-between pt-4">
+                            <div className="flex justify-between pt-2">
                                 <button 
                                     type="submit" 
-                                    className="btn-neon-purple py-3 px-6 rounded-lg"
+                                    className="btn-neon-purple py-2.5 px-6 rounded-lg font-medium"
                                 >
                                     {isEditing ? '✓ Update' : '+ Create'}
                                 </button>
@@ -246,7 +246,7 @@ export default function CertificationsAdminPage() {
                                     <button 
                                         type="button" 
                                         onClick={resetForm} 
-                                        className="bg-gray-600/20 hover:bg-gray-600/30 border border-gray-500/50 text-gray-400 hover:text-gray-300 py-3 px-6 rounded-lg transition-all"
+                                        className="bg-[var(--background-tertiary)] hover:bg-[var(--border)] border border-[var(--border)] text-[var(--foreground-muted)] py-2.5 px-6 rounded-lg transition-colors"
                                     >
                                         Cancel
                                     </button>

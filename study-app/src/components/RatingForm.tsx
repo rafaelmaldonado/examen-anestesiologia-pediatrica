@@ -30,15 +30,15 @@ export default function RatingForm({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-gray-800 rounded-xl p-6 max-w-md w-full mx-4 border border-gray-700">
-        <h3 className="text-xl font-bold text-glow-purple mb-4">
+    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-[var(--card-bg)] rounded-xl p-6 max-w-md w-full mx-4 border border-[var(--border)] shadow-lg">
+        <h3 className="text-xl font-semibold text-[var(--foreground)] mb-4">
           Rate Your Experience
         </h3>
         
         <div className="mb-4">
-          <p className="text-gray-300 mb-2">
-            How would you rate the <span className="text-glow-orange">{certification.name}</span> certification?
+          <p className="text-[var(--foreground-muted)] mb-2">
+            How would you rate the <span className="font-medium text-[var(--primary)]">{certification.name}</span> certification?
           </p>
           <div className="flex justify-center mb-4">
             <StarRating 
@@ -51,7 +51,7 @@ export default function RatingForm({
 
         <form onSubmit={handleSubmit}>
           <div className="mb-6">
-            <label htmlFor="comment" className="block text-sm font-medium text-gray-300 mb-2">
+            <label htmlFor="comment" className="block text-sm font-medium text-[var(--foreground)] mb-2">
               Comments (optional)
             </label>
             <textarea
@@ -60,10 +60,10 @@ export default function RatingForm({
               onChange={(e) => setComment(e.target.value)}
               placeholder="Tell us about your experience with this certification..."
               rows={4}
-              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+              className="w-full px-3 py-2 bg-[var(--background-secondary)] border border-[var(--border)] rounded-lg text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:outline-none focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary-lighter)]"
               maxLength={500}
             />
-            <div className="text-right text-xs text-gray-400 mt-1">
+            <div className="text-right text-xs text-[var(--foreground-muted)] mt-1">
               {comment.length}/500
             </div>
           </div>
@@ -73,14 +73,14 @@ export default function RatingForm({
               type="button"
               onClick={onCancel}
               disabled={isSubmitting}
-              className="flex-1 px-4 py-2 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-700 transition-colors disabled:opacity-50"
+              className="flex-1 px-4 py-2 border border-[var(--border)] text-[var(--foreground-muted)] rounded-lg hover:bg-[var(--background-secondary)] transition-colors disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting || rating === 0}
-              className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 px-4 py-2 btn-neon-purple rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? 'Submitting...' : 'Submit Rating'}
             </button>

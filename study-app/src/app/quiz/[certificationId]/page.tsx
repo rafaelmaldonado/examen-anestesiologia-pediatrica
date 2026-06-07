@@ -128,9 +128,9 @@ export default function QuizPage() {
   if (checkingAccess || loading) return (
     <div className="flex justify-center items-center h-screen">
       <div className="text-center">
-        <div className="spinner-neon w-12 h-12 mx-auto mb-4"></div>
-        <div className="text-xl font-semibold text-glow-purple">
-          {checkingAccess ? 'Checking access...' : 'Loading Quiz...'}
+        <div className="spinner-neon w-10 h-10 mx-auto mb-4"></div>
+        <div className="text-lg font-medium text-[var(--foreground-muted)]">
+          {checkingAccess ? 'Checking access...' : 'Loading quiz...'}
         </div>
       </div>
     </div>
@@ -139,12 +139,12 @@ export default function QuizPage() {
   if (error) return (
     <div className="flex justify-center items-center h-screen">
       <div className="text-center card-dark p-8 rounded-2xl max-w-md">
-        <div className="text-xl font-semibold text-red-400 mb-4">
+        <div className="text-lg font-semibold text-[var(--error)] mb-4">
           {error}
         </div>
         {accessStatus?.needsPayment && (
           <div className="space-y-4">
-            <p className="text-gray-300">
+            <p className="text-[var(--foreground-muted)]">
               You've used your free trial. Purchase access to continue taking quizzes for this certification.
             </p>
             <button
@@ -157,7 +157,7 @@ export default function QuizPage() {
         )}
         <button
           onClick={() => router.push('/')}
-          className="mt-4 text-gray-400 hover:text-white"
+          className="mt-4 text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors"
         >
           ← Back to Home
         </button>
@@ -179,45 +179,45 @@ export default function QuizPage() {
   const currentQuestion = questions[currentQuestionIndex];
 
   return (
-    <div className="container mx-auto p-4 sm:p-8 max-w-4xl min-h-screen">
+    <div className="container mx-auto p-4 sm:p-8 max-w-3xl min-h-screen">
       <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold mb-4 text-glow-purple">Certification Quiz</h1>
-        <div className="text-glow-orange">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-2 text-[var(--foreground)]">Certification Quiz</h1>
+        <div className="text-[var(--accent)] font-medium">
           Question {currentQuestionIndex + 1} of {questions.length}
         </div>
       </div>
       
-      <div className="card-dark p-8 rounded-2xl mb-8">
+      <div className="card-dark p-6 sm:p-8 rounded-xl mb-8">
         <div className="mb-6">
-          <div className="w-full bg-gray-700 rounded-full h-2 mb-6">
+          <div className="w-full bg-[var(--background-tertiary)] rounded-full h-2 mb-6">
             <div 
-              className="bg-gradient-to-r from-purple-500 to-orange-500 h-2 rounded-full transition-all duration-300" 
+              className="bg-[var(--primary)] h-2 rounded-full transition-all duration-300" 
               style={{width: `${((currentQuestionIndex + 1) / questions.length) * 100}%`}}
             ></div>
           </div>
         </div>
         
-        <h2 className="text-2xl font-semibold mb-4 text-gray-100 leading-relaxed">
+        <h2 className="text-lg sm:text-xl font-semibold mb-4 text-[var(--foreground)] leading-relaxed">
           {currentQuestion.questionText}
         </h2>
         
         {currentQuestion.isMultiSelect ? (
-          <div className="mb-6 p-4 bg-yellow-500/20 border border-yellow-400/30 rounded-lg">
-            <div className="flex items-center text-yellow-300">
-              <span className="text-2xl mr-3">☑️</span>
+          <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+            <div className="flex items-center text-amber-800">
+              <span className="text-xl mr-3">☑️</span>
               <div>
-                <div className="font-bold text-yellow-200">Multiple Choice Question</div>
-                <div className="text-sm">Select ALL correct answers. You can choose more than one option.</div>
+                <div className="font-semibold text-amber-900">Multiple Choice Question</div>
+                <div className="text-sm text-amber-700">Select ALL correct answers. You can choose more than one option.</div>
               </div>
             </div>
           </div>
         ) : (
-          <div className="mb-6 p-4 bg-blue-500/20 border border-blue-400/30 rounded-lg">
-            <div className="flex items-center text-blue-300">
-              <span className="text-2xl mr-3">🔘</span>
+          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-center text-blue-800">
+              <span className="text-xl mr-3">🔘</span>
               <div>
-                <div className="font-bold text-blue-200">Single Choice Question</div>
-                <div className="text-sm">Select the ONE best answer.</div>
+                <div className="font-semibold text-blue-900">Single Choice Question</div>
+                <div className="text-sm text-blue-700">Select the ONE best answer.</div>
               </div>
             </div>
           </div>
@@ -231,7 +231,7 @@ export default function QuizPage() {
               
             return (
               <div key={opt.id}>
-                <label className="flex items-start p-4 sm:p-5 rounded-xl border-2 border-purple-500/20 cursor-pointer transition-all hover:border-purple-500/40 has-[:checked]:border-purple-500 has-[:checked]:bg-purple-500/10 group">
+                <label className="flex items-start p-4 sm:p-5 rounded-xl border-2 border-[var(--border)] cursor-pointer transition-all hover:border-[var(--primary)] hover:bg-[var(--primary-lighter)] has-[:checked]:border-[var(--primary)] has-[:checked]:bg-[var(--primary-lighter)] group">
                   <div className="flex-shrink-0 mt-1">
                     <input
                       type={currentQuestion.isMultiSelect ? "checkbox" : "radio"}
@@ -239,10 +239,10 @@ export default function QuizPage() {
                       value={opt.id}
                       checked={isSelected}
                       onChange={() => handleOptionSelect(currentQuestion.id, opt.id, currentQuestion.isMultiSelect)}
-                      className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500 bg-transparent border-2 border-purple-500/50 focus:ring-purple-500 focus:ring-2 focus:ring-offset-0"
+                      className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--primary)] bg-transparent border-2 border-[var(--border-hover)] focus:ring-[var(--primary)] focus:ring-2 focus:ring-offset-0"
                     />
                   </div>
-                  <span className="ml-3 sm:ml-4 text-base sm:text-lg text-gray-300 group-has-[:checked]:text-purple-300 group-hover:text-white transition-colors leading-relaxed">
+                  <span className="ml-3 sm:ml-4 text-base sm:text-lg text-[var(--foreground)] group-has-[:checked]:text-[var(--primary)] transition-colors leading-relaxed">
                     {opt.optionText}
                   </span>
                 </label>
@@ -256,14 +256,14 @@ export default function QuizPage() {
         <button
             onClick={() => setCurrentQuestionIndex(i => Math.max(0, i - 1))}
             disabled={currentQuestionIndex === 0}
-            className="bg-gray-600 hover:bg-gray-500 text-white font-bold py-3 px-8 rounded-xl disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            className="bg-[var(--background-tertiary)] hover:bg-[var(--border)] text-[var(--foreground)] font-medium py-3 px-6 sm:px-8 rounded-xl disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
         >
             ← Previous
         </button>
         {currentQuestionIndex < questions.length - 1 ? (
             <button
                 onClick={() => setCurrentQuestionIndex(i => Math.min(questions.length - 1, i + 1))}
-                className="btn-neon-purple font-bold py-3 px-8 rounded-xl"
+                className="btn-neon-purple font-medium py-3 px-6 sm:px-8 rounded-xl"
             >
                 Next →
             </button>
@@ -271,7 +271,7 @@ export default function QuizPage() {
             <button
                 onClick={handleSubmit}
                 disabled={submitting || !isQuizComplete()}
-                className="btn-neon-orange font-bold py-3 px-8 rounded-xl disabled:opacity-30 disabled:cursor-not-allowed"
+                className="btn-neon-orange font-medium py-3 px-6 sm:px-8 rounded-xl disabled:opacity-30 disabled:cursor-not-allowed"
             >
                 {submitting ? (
                   <div className="flex items-center">
@@ -279,7 +279,7 @@ export default function QuizPage() {
                     Submitting...
                   </div>
                 ) : (
-                  'Finish & See Results ✨'
+                  'Finish & See Results'
                 )}
             </button>
         )}

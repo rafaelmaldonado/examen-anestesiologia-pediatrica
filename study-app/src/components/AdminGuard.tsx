@@ -46,8 +46,8 @@ export default function AdminGuard({ children }: AdminGuardProps) {
     return (
       <div className="flex justify-center items-center h-screen">
         <div className="text-center">
-          <div className="spinner-neon w-12 h-12 mx-auto mb-4"></div>
-          <div className="text-xl font-semibold text-glow-purple">Loading Admin Panel...</div>
+          <div className="spinner-neon w-10 h-10 mx-auto mb-4"></div>
+          <div className="text-lg font-medium text-[var(--foreground-muted)]">Loading admin panel...</div>
         </div>
       </div>
     );
@@ -65,12 +65,12 @@ export default function AdminGuard({ children }: AdminGuardProps) {
       <div className="container mx-auto p-8 min-h-screen">
         <div className="flex flex-col items-center justify-center h-96">
           <div className="text-center">
-            <h1 className="text-3xl font-bold text-red-500 mb-4">Access Denied</h1>
-            <p className="text-lg text-gray-300 mb-6">You don't have permission to access the admin panel.</p>
-            <p className="text-sm text-gray-400 mb-8">Only administrators can access this section.</p>
+            <h1 className="text-2xl font-bold text-[var(--error)] mb-4">Access Denied</h1>
+            <p className="text-[var(--foreground-muted)] mb-6">You don't have permission to access the admin panel.</p>
+            <p className="text-sm text-[var(--foreground-muted)] mb-8">Only administrators can access this section.</p>
             <Link 
               href="/" 
-              className="btn-primary px-6 py-3 rounded-lg text-white font-semibold hover:bg-purple-700 transition-colors"
+              className="btn-neon-purple px-6 py-3 rounded-lg font-medium"
             >
               Return to Home
             </Link>
