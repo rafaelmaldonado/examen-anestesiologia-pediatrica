@@ -4,7 +4,6 @@ import { useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import RatingsDisplay from '@/components/RatingsDisplay';
-import PaymentButton from '@/components/PaymentButton';
 import type { Certification } from '@/types';
 
 export default function CertificationRatingsPage() {
@@ -113,19 +112,6 @@ export default function CertificationRatingsPage() {
             </div>
           )}
         </div>
-        
-        {/* Show payment section if user needs to pay */}
-        {accessStatus?.needsPayment && certification && (
-          <div className="mb-8">
-            <PaymentButton
-              certificationId={certificationId}
-              certificationName={certification.name}
-              price={certification.price}
-              isFree={certification.isFree}
-              onSuccess={() => window.location.reload()}
-            />
-          </div>
-        )}
 
         {/* Show free trial info */}
         {!accessStatus?.hasPaidAccess && !certification?.isFree && !accessStatus?.hasUsedFreeTrial && (
