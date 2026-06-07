@@ -21,7 +21,22 @@ export default function SocialAuth({ onSuccess }: SocialAuthProps) {
 
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+
+      // Explicitly create the session cookie before navigating.
+      // This avoids a race condition where the middleware sees no session
+      // cookie and redirects back to /auth (common in production).
+      const idToken = await result.user.getIdToken();
+      const sessionRes = await fetch('/api/auth/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken }),
+      });
+
+      if (!sessionRes.ok) {
+        const data = await sessionRes.json().catch(() => ({}));
+        throw new Error(data.error || 'No se pudo crear la sesión. Verifica las variables de entorno en Vercel.');
+      }
 
       if (onSuccess) {
         onSuccess();
@@ -30,7 +45,11 @@ export default function SocialAuth({ onSuccess }: SocialAuthProps) {
       }
     } catch (err: any) {
       console.error('Error de autenticación:', err);
-      setError('No se pudo iniciar sesión con Google. Por favor, inténtalo de nuevo.');
+      // Show the real error in development; generic message in production
+      const msg = process.env.NODE_ENV === 'development'
+        ? err.message
+        : 'No se pudo iniciar sesión con Google. Por favor, inténtalo de nuevo.';
+      setError(msg);
     } finally {
       setLoading(false);
     }

@@ -112,13 +112,10 @@ body {
 .text-glow-purple {
   color: var(--primary);
 }
-.dark .text-glow-purple,
-@media (prefers-color-scheme: dark) { :root:not(.light) .text-glow-purple }
-{
+.dark .text-glow-purple{
   color: var(--neon-purple, var(--primary));
   text-shadow: 0 0 8px var(--purple-glow, transparent);
 }
-
 .text-glow-orange {
   color: var(--accent);
 }
@@ -233,7 +230,7 @@ body {
 
 /* ---- Navigation ---- */
 .nav-dark {
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(10, 10, 10, 0.95);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border);
 }
