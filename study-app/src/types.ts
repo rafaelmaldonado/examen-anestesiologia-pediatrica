@@ -70,8 +70,6 @@ export interface UserSubscription {
     id: string;
     userId: string;
     certificationId: string;
-    stripeCustomerId?: string;
-    stripePaymentIntentId?: string;
     status: 'pending' | 'paid' | 'failed' | 'refunded';
     amount: number; // Amount in cents
     createdAt: Date;
