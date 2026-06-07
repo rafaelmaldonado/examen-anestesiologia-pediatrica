@@ -47,7 +47,7 @@ export async function middleware(request: NextRequest) {
     // If accessing admin routes, verify admin permissions
     if (isAdminRoute) {
       const userInfo = await response.json();
-      const adminEmail = process.env.ADMIN_EMAIL;
+      const adminEmail = process.env.ADMIN_EMAIL?.trim();
       
       if (!adminEmail) {
         console.error("ADMIN_EMAIL environment variable not set");
@@ -57,7 +57,7 @@ export async function middleware(request: NextRequest) {
         return redirectResponse;
       }
       
-      if (userInfo.email !== adminEmail) {
+      if (userInfo.email?.trim() !== adminEmail) {
         // Redirect non-admin users to the main page
         const redirectResponse = NextResponse.redirect(new URL('/', request.url));
         redirectResponse.headers.set('Permissions-Policy', 'storage-access=*');

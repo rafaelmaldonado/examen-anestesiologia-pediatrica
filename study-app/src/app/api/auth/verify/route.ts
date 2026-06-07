@@ -19,8 +19,8 @@ export async function GET(request: NextRequest) {
         const userRecord = await adminAuth.getUser(decodedToken.uid);
         
         // Check if user is admin using environment variable
-        const adminEmail = process.env.ADMIN_EMAIL;
-        const isAdmin = adminEmail && userRecord.email === adminEmail;
+        const adminEmail = process.env.ADMIN_EMAIL?.trim();
+        const isAdmin = !!(adminEmail && userRecord.email?.trim() === adminEmail);
         
         return NextResponse.json({ 
             status: 'success', 
