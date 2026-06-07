@@ -55,13 +55,13 @@ export async function getVerifiedAdmin() {
         const userRecord = await adminAuth.getUser(decodedToken.uid);
         
         // Check if user is admin
-        const adminEmail = process.env.ADMIN_EMAIL;
+        const adminEmail = process.env.ADMIN_EMAIL?.trim();
         if (!adminEmail) {
             console.error("ADMIN_EMAIL environment variable not set");
             return null;
         }
         
-        if (userRecord.email !== adminEmail) {
+        if (userRecord.email?.trim() !== adminEmail) {
             return null;
         }
         
