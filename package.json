@@ -2,10 +2,15 @@
   "name": "adobecert",
   "version": "1.0.0",
   "private": true,
-  "workspaces": ["study-app"],
+  "workspaces": [
+    "study-app"
+  ],
   "scripts": {
     "build": "cd study-app && npm run build",
     "dev": "cd study-app && npm run dev",
     "start": "cd study-app && npm run start"
+  },
+  "dependencies": {
+    "firebase": "^12.14.0"
   }
 }

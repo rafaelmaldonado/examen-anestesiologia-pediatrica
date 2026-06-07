@@ -11,7 +11,10 @@ interface StudentResult {
   certificationId: string;
   certificationName: string;
   score: number;
+  correctCount: number | null;
+  totalQuestions: number | null;
   timeTaken: number | null;
+  finishedAt: string | null;
   createdAt: string | null;
 }
 
@@ -27,7 +30,7 @@ export default function AdminStudentsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filterMateria, setFilterMateria] = useState('');
-  const [sortField, setSortField] = useState<keyof StudentResult>('createdAt');
+  const [sortField, setSortField] = useState<keyof StudentResult>('finishedAt');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
 
   useEffect(() => {
@@ -152,6 +155,9 @@ export default function AdminStudentsPage() {
                     >
                       Calificación{sortIcon('score')}
                     </th>
+                    <th className="text-center px-4 py-3 font-semibold text-[var(--foreground-muted)] whitespace-nowrap">
+                      Aciertos
+                    </th>
                     <th
                       className="text-center px-4 py-3 font-semibold text-[var(--foreground-muted)] cursor-pointer hover:text-[var(--foreground)] whitespace-nowrap"
                       onClick={() => toggleSort('timeTaken')}
@@ -160,9 +166,9 @@ export default function AdminStudentsPage() {
                     </th>
                     <th
                       className="text-right px-4 py-3 font-semibold text-[var(--foreground-muted)] cursor-pointer hover:text-[var(--foreground)] whitespace-nowrap"
-                      onClick={() => toggleSort('createdAt')}
+                      onClick={() => toggleSort('finishedAt')}
                     >
-                      Fecha{sortIcon('createdAt')}
+                      Fecha de término{sortIcon('finishedAt')}
                     </th>
                   </tr>
                 </thead>
@@ -191,12 +197,17 @@ export default function AdminStudentsPage() {
                           {result.score}%
                         </span>
                       </td>
+                      <td className="px-4 py-3 text-center text-[var(--foreground-muted)] text-sm">
+                        {result.correctCount !== null && result.totalQuestions !== null
+                          ? `${result.correctCount} / ${result.totalQuestions}`
+                          : '—'}
+                      </td>
                       <td className="px-4 py-3 text-center font-mono text-[var(--foreground-muted)]">
                         {formatTime(result.timeTaken)}
                       </td>
                       <td className="px-4 py-3 text-right text-[var(--foreground-muted)] whitespace-nowrap">
-                        {result.createdAt
-                          ? new Date(result.createdAt).toLocaleDateString('es-MX', {
+                        {(result.finishedAt || result.createdAt)
+                          ? new Date(result.finishedAt || result.createdAt!).toLocaleDateString('es-MX', {
                               day: '2-digit',
                               month: 'short',
                               year: 'numeric',

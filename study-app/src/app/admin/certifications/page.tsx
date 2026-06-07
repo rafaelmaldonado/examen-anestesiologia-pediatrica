@@ -17,6 +17,8 @@ export default function CertificationsAdminPage() {
     const [isAdobe, setIsAdobe] = useState(false);
     const [price, setPrice] = useState<number | ''>('');
     const [isFree, setIsFree] = useState(false);
+    const [isActive, setIsActive] = useState(true);
+    const [examDurationMinutes, setExamDurationMinutes] = useState<number>(30);
 
     useEffect(() => {
         fetchCertifications();
@@ -51,7 +53,9 @@ export default function CertificationsAdminPage() {
                     description, 
                     isAdobe, 
                     price: priceInCents,
-                    isFree 
+                    isFree,
+                    isActive,
+                    examDurationMinutes,
                 }),
             });
             if (!res.ok) {
@@ -72,6 +76,8 @@ export default function CertificationsAdminPage() {
         setIsAdobe(cert.isAdobe);
         setPrice(cert.price ? cert.price / 100 : '');
         setIsFree(cert.isFree || false);
+        setIsActive(cert.isActive !== false);
+        setExamDurationMinutes(cert.examDurationMinutes ?? 30);
     };
 
     const handleDelete = async (id: string) => {
@@ -93,6 +99,8 @@ export default function CertificationsAdminPage() {
         setIsAdobe(false);
         setPrice('');
         setIsFree(false);
+        setIsActive(true);
+        setExamDurationMinutes(30);
     };
 
     return (
@@ -128,20 +136,18 @@ export default function CertificationsAdminPage() {
                                 <div className="flex-1">
                                     <div className="flex items-center space-x-2 mb-1">
                                         <h3 className="font-semibold text-[var(--foreground)]">{cert.name}</h3>
-                                        {cert.isAdobe && (
-                                            <span className="bg-red-50 text-red-700 text-xs px-2 py-0.5 rounded-full border border-red-200">
-                                                Adobe
-                                            </span>
-                                        )}
-                                        {cert.isFree ? (
+                                        {cert.isActive !== false ? (
                                             <span className="bg-[var(--success-light)] text-green-700 text-xs px-2 py-0.5 rounded-full border border-green-200">
-                                                Free
+                                                ✓ Activo
                                             </span>
                                         ) : (
-                                            <span className="bg-blue-50 text-blue-700 text-xs px-2 py-0.5 rounded-full border border-blue-200">
-                                                ${cert.price ? (cert.price / 100).toFixed(2) : '29.99'}
+                                            <span className="bg-[var(--error-light)] text-red-700 text-xs px-2 py-0.5 rounded-full border border-red-200">
+                                                ✗ Inactivo
                                             </span>
                                         )}
+                                        <span className="bg-blue-50 text-blue-700 text-xs px-2 py-0.5 rounded-full border border-blue-200">
+                                            ⏱ {cert.examDurationMinutes ?? 30} min
+                                        </span>
                                     </div>
                                         <p className="text-sm text-[var(--foreground-muted)]">{cert.description || 'Sin descripción'}</p>
                                 </div>
@@ -195,6 +201,38 @@ export default function CertificationsAdminPage() {
                                     className="input-neon w-full px-4 py-2.5 rounded-lg h-28 resize-none" 
                                     placeholder="Breve descripción de la materia"
                                 />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-2 text-[var(--foreground)]">Duración del examen (minutos)</label>
+                                <input
+                                    type="number"
+                                    value={examDurationMinutes}
+                                    onChange={e => setExamDurationMinutes(Math.max(5, parseInt(e.target.value) || 30))}
+                                    className="input-neon w-full px-4 py-2.5 rounded-lg"
+                                    placeholder="30"
+                                    min="5"
+                                    max="180"
+                                    required
+                                />
+                                <p className="text-xs text-[var(--foreground-muted)] mt-1">Mínimo 5 min, máximo 180 min</p>
+                            </div>
+                            <div>
+                                <label className="flex items-center space-x-3">
+                                    <input
+                                        type="checkbox"
+                                        checked={isActive}
+                                        onChange={e => setIsActive(e.target.checked)}
+                                        className="w-4 h-4 text-[var(--success)] border-[var(--border-hover)] rounded focus:ring-[var(--success)] focus:ring-2"
+                                    />
+                                    <span className="text-sm text-[var(--foreground)]">
+                                        Examen activo (visible para estudiantes)
+                                    </span>
+                                </label>
+                                {!isActive && (
+                                    <p className="text-xs text-[var(--error)] mt-1 ml-7">
+                                        El examen está desactivado. Los estudiantes no podrán acceder aunque tengan el link.
+                                    </p>
+                                )}
                             </div>
                             <div>
                                 <label className="flex items-center space-x-3">

@@ -12,22 +12,21 @@ interface UserAnswer {
 export async function POST(request: Request) {
   const user = await getVerifiedUser();
   if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
   const userId = user.uid;
 
   try {
     const body = await request.json();
-    
-    const { certificationId, answers, timeTaken } = body as { 
-      certificationId: string, 
+
+    const { certificationId, answers, timeTaken } = body as {
+      certificationId: string,
       answers: UserAnswer[],
       timeTaken?: number
     };
 
     if (!certificationId || !answers || !Array.isArray(answers) || answers.length === 0) {
-      console.error('Missing required fields:', { certificationId, answers });
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+      return NextResponse.json({ error: "Campos requeridos faltantes" }, { status: 400 });
     }
 
     const questionIds = answers.map(a => a.questionId);
@@ -37,90 +36,102 @@ export async function POST(request: Request) {
     }
 
     if (!adminDb) {
-      return NextResponse.json({ error: "Database connection failed" }, { status: 500 });
+      return NextResponse.json({ error: "Base de datos no disponible" }, { status: 500 });
+    }
+
+    // Prevent duplicate submissions: check if result already exists
+    const existingResult = await adminDb
+      .collection("testResults")
+      .where("userId", "==", userId)
+      .where("certificationId", "==", certificationId)
+      .limit(1)
+      .get();
+
+    if (!existingResult.empty) {
+      return NextResponse.json(
+        { error: "Ya enviaste los resultados de este examen. Solo se permite un intento." },
+        { status: 409 }
+      );
     }
 
     // Fetch the questions the user answered
     const questionsRef = adminDb.collection(`certifications/${certificationId}/questions`);
-    const questionsSnapshot = await questionsRef.where(admin.firestore.FieldPath.documentId(), 'in', questionIds).get();
+    const questionsSnapshot = await questionsRef
+      .where(admin.firestore.FieldPath.documentId(), 'in', questionIds)
+      .get();
     const correctQuestionsData = questionsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[];
 
     let correctCount = 0;
     const resultsWithExplanations = answers.map(userAnswer => {
       const question = correctQuestionsData.find(q => q.id === userAnswer.questionId);
-      if (!question) {
-        console.log(`Question not found for ID: ${userAnswer.questionId}`);
-        return null;
-      }
+      if (!question) return null;
 
       const correctOptions = question.options?.filter((opt: any) => opt.isCorrect) || [];
       const correctOptionIds: string[] = correctOptions.map((opt: any) => opt.id);
-      
+
       let isUserCorrect = false;
-      
+
       if (question.isMultiSelect) {
-        // For multi-select: user must select ALL correct options and NO incorrect ones
         const userSelectedIds = userAnswer.selectedOptionId;
         const hasAllCorrect = correctOptionIds.every((id: string) => userSelectedIds.includes(id));
         const hasNoIncorrect = userSelectedIds.every((id: string) => correctOptionIds.includes(id));
         isUserCorrect = hasAllCorrect && hasNoIncorrect && correctOptionIds.length > 0;
       } else {
-        // For single-select: user must select the one correct option
         const correctOption = correctOptions[0];
         isUserCorrect = correctOption && userAnswer.selectedOptionId.includes(correctOption.id);
       }
-      
-      if (isUserCorrect) {
-        correctCount++;
-      }
+
+      if (isUserCorrect) correctCount++;
 
       return {
         questionId: userAnswer.questionId,
-        questionText: question.questionText || 'Question text not found',
+        questionText: question.questionText || 'Pregunta no encontrada',
         selectedOptionId: userAnswer.selectedOptionId,
-        correctOptions: correctOptions,
+        correctOptions,
         allOptions: question.options || [],
         isCorrect: isUserCorrect,
         isMultiSelect: question.isMultiSelect || false,
       };
     }).filter(Boolean);
 
-    const score = Math.round((correctCount / answers.length) * 100);
+    const totalQuestions = answers.length;
+    const score = Math.round((correctCount / totalQuestions) * 100);
+    const finishedAt = new Date();
 
     // Fetch certification details
     let certificationName = '';
     try {
-      const certificationSnapshot = await adminDb.collection("certifications").doc(certificationId).get();
-      if (certificationSnapshot.exists) {
-        const certificationData = certificationSnapshot.data();
-        certificationName = certificationData?.name || '';
-      }
-    } catch (error) {
-      console.error('Error fetching certification details:', error);
-    }
+      const certDoc = await adminDb.collection("certifications").doc(certificationId).get();
+      if (certDoc.exists) certificationName = certDoc.data()?.name || '';
+    } catch {}
 
-    // Save the result to the database
-    if (adminDb) {
-      await adminDb.collection("testResults").add({
-        userId,
-        certificationId,
-        certificationName,
-        score,
-        timeTaken: timeTaken ?? null,
-        createdAt: new Date(),
-      });
-    }
+    // Save result to Firestore
+    await adminDb.collection("testResults").add({
+      userId,
+      userEmail: user.email || null,
+      certificationId,
+      certificationName,
+      score,
+      correctCount,
+      totalQuestions,
+      timeTaken: timeTaken ?? null,
+      finishedAt,
+      createdAt: finishedAt,
+    });
 
     return NextResponse.json({
       score,
+      correctCount,
+      totalQuestions,
       results: resultsWithExplanations,
       certificationId,
       certificationName,
       timeTaken,
+      finishedAt: finishedAt.toISOString(),
     });
 
   } catch (error) {
-    console.error("Error submitting results:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    console.error("Error al guardar resultados:", error);
+    return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
   }
 }

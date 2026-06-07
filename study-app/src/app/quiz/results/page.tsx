@@ -25,9 +25,13 @@ interface ResultDetails {
 
 interface ResultsData {
     score: number;
+    correctCount?: number;
+    totalQuestions?: number;
     results: ResultDetails[];
     certificationId?: string;
     certificationName?: string;
+    timeTaken?: number;
+    finishedAt?: string;
 }
 
 export default function ResultsPage() {
@@ -134,11 +138,16 @@ export default function ResultsPage() {
             
             <div className="text-center mb-8 card-dark p-8 rounded-xl">
                 <p className="text-lg text-[var(--foreground-muted)] mb-3">Calificación Final:</p>
-                <p className={`text-6xl font-bold mb-4 ${results.score >= 75 ? 'text-[var(--success)]' : 'text-[var(--accent)]'}`}>
+                <p className={`text-6xl font-bold mb-2 ${results.score >= 75 ? 'text-[var(--success)]' : 'text-[var(--accent)]'}`}>
                     {results.score}%
                 </p>
+                {results.correctCount !== undefined && results.totalQuestions !== undefined && (
+                    <p className="text-xl font-semibold text-[var(--foreground)] mb-4">
+                        {results.correctCount} de {results.totalQuestions} respuestas correctas
+                    </p>
+                )}
                 <div className="w-full bg-[var(--background-tertiary)] rounded-full h-2.5 mb-4">
-                    <div 
+                    <div
                         className={`h-2.5 rounded-full transition-all duration-1000 ${results.score >= 75 ? 'bg-[var(--success)]' : 'bg-[var(--accent)]'}`}
                         style={{width: `${results.score}%`}}
                     ></div>
@@ -146,6 +155,14 @@ export default function ResultsPage() {
                 <p className="text-[var(--foreground-muted)]">
                     {results.score >= 75 ? '🎉 ¡Felicitaciones! Aprobaste el examen.' : '📚 Sigue estudiando y vuelve a intentarlo.'}
                 </p>
+                {results.finishedAt && (
+                    <p className="text-xs text-[var(--foreground-muted)] mt-3">
+                        Terminado el {new Date(results.finishedAt).toLocaleDateString('es-MX', {
+                            day: '2-digit', month: 'long', year: 'numeric',
+                            hour: '2-digit', minute: '2-digit'
+                        })}
+                    </p>
+                )}
                 
                 {certification && results.score >= 75 && (
                     <div className="mt-6 pt-6 border-t border-[var(--border)]">

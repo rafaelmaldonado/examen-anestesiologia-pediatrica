@@ -86,5 +86,14 @@ export async function middleware(request: NextRequest) {
 
 // This middleware only runs on routes matching the matcher
 export const config = {
-  matcher: ['/admin/:path*', '/quiz/:path*'],
+  matcher: [
+    /*
+     * Match all paths EXCEPT:
+     * - /auth (login page)
+     * - /api/* (API routes handle their own auth)
+     * - /_next/* (Next.js internals)
+     * - /favicon.ico, /robots.txt, etc.
+     */
+    '/((?!auth|api|_next/static|_next/image|favicon\\.ico|robots\\.txt).*)',
+  ],
 };

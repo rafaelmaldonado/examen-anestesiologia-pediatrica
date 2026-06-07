@@ -35,7 +35,10 @@ export async function GET() {
         certificationId: data.certificationId,
         certificationName: data.certificationName || data.certificationId,
         score: data.score,
+        correctCount: data.correctCount ?? null,
+        totalQuestions: data.totalQuestions ?? null,
         timeTaken: data.timeTaken ?? null,
+        finishedAt: data.finishedAt?.toDate?.()?.toISOString() ?? data.createdAt?.toDate?.()?.toISOString() ?? null,
         createdAt: data.createdAt?.toDate?.()?.toISOString() ?? null,
       };
     });

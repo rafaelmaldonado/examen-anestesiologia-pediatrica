@@ -4,8 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import type { Question } from '@/types';
 import { safeJsonStorage } from '@/lib/storage-helper';
-
-const EXAM_DURATION_SECONDS = 30 * 60; // 30 minutos
+import Link from 'next/link';
 
 function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60).toString().padStart(2, '0');
@@ -19,9 +18,11 @@ export default function QuizPage() {
   const [userAnswers, setUserAnswers] = useState<{ [key: string]: string | string[] }>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [errorCode, setErrorCode] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(EXAM_DURATION_SECONDS);
+  const [timeLeft, setTimeLeft] = useState(0);
   const [examStarted, setExamStarted] = useState(false);
+  const examDurationSecondsRef = useRef(30 * 60);
   const startTimeRef = useRef<number | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -36,18 +37,24 @@ export default function QuizPage() {
       try {
         setLoading(true);
         const res = await fetch(`/api/quiz?certificationId=${certificationId}&count=20`);
+
         if (!res.ok) {
-          if (res.status === 401) {
-            router.push('/auth');
-            return;
-          }
-          throw new Error('No se pudieron cargar las preguntas del examen.');
+          const data = await res.json().catch(() => ({}));
+          setErrorCode(res.status);
+          setError(data.error || 'Error al cargar el examen.');
+          return;
         }
+
         const data = await res.json();
-        if (data.length === 0) {
-          throw new Error('No se encontraron preguntas para esta materia.');
+        const durationSeconds = (data.examDurationMinutes ?? 30) * 60;
+        examDurationSecondsRef.current = durationSeconds;
+        setTimeLeft(durationSeconds);
+
+        if (!data.questions?.length) {
+          setError('No se encontraron preguntas para esta materia.');
+          return;
         }
-        setQuestions(data);
+        setQuestions(data.questions);
       } catch (err: any) {
         setError(err.message);
       } finally {
@@ -56,19 +63,17 @@ export default function QuizPage() {
     };
 
     fetchQuestions();
-  }, [certificationId, router]);
+  }, [certificationId]);
 
   const handleSubmit = useCallback(async (autoSubmit = false) => {
     if (submitting) return;
     setSubmitting(true);
 
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-    }
+    if (timerRef.current) clearInterval(timerRef.current);
 
     const timeTaken = startTimeRef.current
       ? Math.round((Date.now() - startTimeRef.current) / 1000)
-      : EXAM_DURATION_SECONDS;
+      : examDurationSecondsRef.current;
 
     try {
       const answersForApi = Object.entries(userAnswers).map(([questionId, selectedOption]) => ({
@@ -87,7 +92,8 @@ export default function QuizPage() {
       });
 
       if (!res.ok) {
-        throw new Error('No se pudieron enviar los resultados.');
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'No se pudieron enviar los resultados.');
       }
       const resultData = await res.json();
       safeJsonStorage.setItem('quizResults', resultData);
@@ -103,7 +109,6 @@ export default function QuizPage() {
     if (questions.length > 0 && !examStarted) {
       setExamStarted(true);
       startTimeRef.current = Date.now();
-
       timerRef.current = setInterval(() => {
         setTimeLeft(prev => {
           if (prev <= 1) {
@@ -114,9 +119,7 @@ export default function QuizPage() {
         });
       }, 1000);
     }
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [questions, examStarted]);
 
   // Auto-submit when time runs out
@@ -138,15 +141,11 @@ export default function QuizPage() {
     }
   };
 
-  const isExamComplete = () => {
-    return questions.every(question => {
-      const answer = userAnswers[question.id];
-      if (question.isMultiSelect) {
-        return Array.isArray(answer) && answer.length > 0;
-      }
-      return typeof answer === 'string' && answer.length > 0;
-    });
-  };
+  const isExamComplete = () => questions.every(question => {
+    const answer = userAnswers[question.id];
+    if (question.isMultiSelect) return Array.isArray(answer) && answer.length > 0;
+    return typeof answer === 'string' && answer.length > 0;
+  });
 
   const answeredCount = questions.filter(q => {
     const answer = userAnswers[q.id];
@@ -163,22 +162,53 @@ export default function QuizPage() {
     </div>
   );
 
-  if (error) return (
-    <div className="flex justify-center items-center h-screen">
-      <div className="text-center card-dark p-8 rounded-2xl max-w-md">
-        <div className="text-lg font-semibold text-[var(--error)] mb-4">{error}</div>
-        <button
-          onClick={() => router.push('/')}
-          className="mt-4 text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors"
-        >
-          ← Volver al inicio
-        </button>
+  if (error) {
+    // Exam already taken (409)
+    if (errorCode === 409) {
+      return (
+        <div className="flex justify-center items-center h-screen">
+          <div className="text-center card-dark p-10 rounded-2xl max-w-md">
+            <div className="text-5xl mb-4">✅</div>
+            <h2 className="text-xl font-bold text-[var(--foreground)] mb-3">Examen ya completado</h2>
+            <p className="text-[var(--foreground-muted)] mb-6">{error}</p>
+            <Link href="/history" className="btn-neon-purple py-3 px-8 rounded-lg inline-block">
+              Ver mi historial
+            </Link>
+          </div>
+        </div>
+      );
+    }
+
+    // Exam inactive (403)
+    if (errorCode === 403) {
+      return (
+        <div className="flex justify-center items-center h-screen">
+          <div className="text-center card-dark p-10 rounded-2xl max-w-md">
+            <div className="text-5xl mb-4">🔒</div>
+            <h2 className="text-xl font-bold text-[var(--foreground)] mb-3">Examen no disponible</h2>
+            <p className="text-[var(--foreground-muted)] mb-6">{error}</p>
+            <Link href="/" className="btn-neon-purple py-3 px-8 rounded-lg inline-block">
+              ← Volver al inicio
+            </Link>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="text-center card-dark p-8 rounded-2xl max-w-md">
+          <div className="text-lg font-semibold text-[var(--error)] mb-4">{error}</div>
+          <button onClick={() => router.push('/')} className="mt-4 text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors">
+            ← Volver al inicio
+          </button>
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
 
   const currentQuestion = questions[currentQuestionIndex];
-  const isTimeLow = timeLeft <= 300; // últimos 5 minutos
+  const isTimeLow = timeLeft > 0 && timeLeft <= 300;
 
   return (
     <div className="container mx-auto p-4 sm:p-8 max-w-3xl min-h-screen">
@@ -249,7 +279,6 @@ export default function QuizPage() {
             const isSelected = currentQuestion.isMultiSelect
               ? (userAnswers[currentQuestion.id] as string[] || []).includes(opt.id)
               : userAnswers[currentQuestion.id] === opt.id;
-
             return (
               <div key={opt.id}>
                 <label className="flex items-start p-4 sm:p-5 rounded-xl border-2 border-[var(--border)] cursor-pointer transition-all hover:border-[var(--primary)] hover:bg-[var(--primary-lighter)] has-[:checked]:border-[var(--primary)] has-[:checked]:bg-[var(--primary-lighter)] group">
@@ -299,9 +328,7 @@ export default function QuizPage() {
                 <div className="spinner-neon w-5 h-5 mr-3"></div>
                 Enviando...
               </div>
-            ) : (
-              'Finalizar Examen'
-            )}
+            ) : 'Finalizar Examen'}
           </button>
         )}
       </div>
@@ -315,7 +342,6 @@ export default function QuizPage() {
             const answered = q.isMultiSelect
               ? Array.isArray(answer) && answer.length > 0
               : typeof answer === 'string' && answer.length > 0;
-
             return (
               <button
                 key={q.id}
@@ -333,289 +359,6 @@ export default function QuizPage() {
             );
           })}
         </div>
-      </div>
-    </div>
-  );
-}
-
-export default function QuizPage() {
-  const [questions, setQuestions] = useState<Question[]>([]);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [userAnswers, setUserAnswers] = useState<{ [key: string]: string | string[] }>({});
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-  const [accessStatus, setAccessStatus] = useState<any>(null);
-  const [checkingAccess, setCheckingAccess] = useState(true);
-
-  const params = useParams();
-  const router = useRouter();
-  const { certificationId } = params;
-
-  // Check user access before loading quiz
-  useEffect(() => {
-    if (certificationId) {
-      const checkAccess = async () => {
-        try {
-          const res = await fetch(`/api/user-access?certificationId=${certificationId}`);
-          if (!res.ok) {
-            if (res.status === 401) {
-              router.push('/login');
-              return;
-            }
-            throw new Error('Failed to check access');
-          }
-          const data = await res.json();
-          setAccessStatus(data);
-          
-          if (!data.canTakeQuiz) {
-            setError('You need to purchase access to this certification.');
-            setLoading(false);
-            setCheckingAccess(false);
-            return;
-          }
-        } catch (err: any) {
-          setError(err.message);
-          setLoading(false);
-        } finally {
-          setCheckingAccess(false);
-        }
-      };
-      checkAccess();
-    }
-  }, [certificationId, router]);
-
-  useEffect(() => {
-    if (certificationId && accessStatus?.canTakeQuiz && !checkingAccess) {
-      const fetchQuestions = async () => {
-        try {
-          setLoading(true);
-          const res = await fetch(`/api/quiz?certificationId=${certificationId}&count=10`);
-          if (!res.ok) {
-            throw new Error('Failed to fetch quiz questions.');
-          }
-          const data = await res.json();
-          if (data.length === 0) {
-            throw new Error("No questions found for this certification.");
-          }
-          console.log('Quiz questions loaded:', data); // Debug
-          setQuestions(data);
-        } catch (err: any) {
-          setError(err.message);
-        } finally {
-          setLoading(false);
-        }
-      };
-      fetchQuestions();
-    }
-  }, [certificationId, accessStatus, checkingAccess]);
-
-  const handleOptionSelect = (questionId: string, optionId: string, isMultiSelect: boolean = false) => {
-    console.log('handleOptionSelect:', { questionId, optionId, isMultiSelect }); // Debug
-    if (isMultiSelect) {
-      const currentAnswers = userAnswers[questionId] as string[] || [];
-      const newAnswers = currentAnswers.includes(optionId)
-        ? currentAnswers.filter(id => id !== optionId) // Remove if already selected
-        : [...currentAnswers, optionId]; // Add if not selected
-      console.log('Multi-select answers:', { currentAnswers, newAnswers }); // Debug
-      setUserAnswers({ ...userAnswers, [questionId]: newAnswers });
-    } else {
-      setUserAnswers({ ...userAnswers, [questionId]: optionId });
-    }
-  };
-
-  const handleSubmit = async () => {
-    setSubmitting(true);
-    try {
-        const answersForApi = Object.entries(userAnswers).map(([questionId, selectedOption]) => ({
-            questionId,
-            selectedOptionId: Array.isArray(selectedOption) ? selectedOption : [selectedOption],
-        }));
-
-        const res = await fetch('/api/results', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                certificationId: certificationId as string, 
-                answers: answersForApi,
-                isFreeAttempt: !accessStatus?.hasPaidAccess 
-            }),
-        });
-
-        if (!res.ok) {
-            throw new Error('Failed to submit results.');
-        }
-        const resultData = await res.json();
-
-        // Use safe storage helper instead of direct localStorage
-        safeJsonStorage.setItem('quizResults', resultData);
-        router.push(`/quiz/results`);
-
-    } catch (err: any) {
-        setError(err.message);
-    } finally {
-        setSubmitting(false);
-    }
-  };
-
-  if (checkingAccess || loading) return (
-    <div className="flex justify-center items-center h-screen">
-      <div className="text-center">
-        <div className="spinner-neon w-10 h-10 mx-auto mb-4"></div>
-        <div className="text-lg font-medium text-[var(--foreground-muted)]">
-          {checkingAccess ? 'Checking access...' : 'Loading quiz...'}
-        </div>
-      </div>
-    </div>
-  );
-
-  if (error) return (
-    <div className="flex justify-center items-center h-screen">
-      <div className="text-center card-dark p-8 rounded-2xl max-w-md">
-        <div className="text-lg font-semibold text-[var(--error)] mb-4">
-          {error}
-        </div>
-        {accessStatus?.needsPayment && (
-          <div className="space-y-4">
-            <p className="text-[var(--foreground-muted)]">
-              You've used your free trial. Purchase access to continue taking quizzes for this certification.
-            </p>
-            <button
-              onClick={() => router.push(`/certifications/${certificationId}/ratings`)}
-              className="btn-neon-purple py-3 px-6 rounded-lg"
-            >
-              Purchase Access
-            </button>
-          </div>
-        )}
-        <button
-          onClick={() => router.push('/')}
-          className="mt-4 text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors"
-        >
-          ← Back to Home
-        </button>
-      </div>
-    </div>
-  );
-
-  const isQuizComplete = () => {
-    return questions.every(question => {
-      const answer = userAnswers[question.id];
-      if (question.isMultiSelect) {
-        return Array.isArray(answer) && answer.length > 0;
-      } else {
-        return typeof answer === 'string' && answer.length > 0;
-      }
-    });
-  };
-
-  const currentQuestion = questions[currentQuestionIndex];
-
-  return (
-    <div className="container mx-auto p-4 sm:p-8 max-w-3xl min-h-screen">
-      <div className="text-center mb-8">
-        <h1 className="text-2xl sm:text-3xl font-bold mb-2 text-[var(--foreground)]">Certification Quiz</h1>
-        <div className="text-[var(--accent)] font-medium">
-          Question {currentQuestionIndex + 1} of {questions.length}
-        </div>
-      </div>
-      
-      <div className="card-dark p-6 sm:p-8 rounded-xl mb-8">
-        <div className="mb-6">
-          <div className="w-full bg-[var(--background-tertiary)] rounded-full h-2 mb-6">
-            <div 
-              className="bg-[var(--primary)] h-2 rounded-full transition-all duration-300" 
-              style={{width: `${((currentQuestionIndex + 1) / questions.length) * 100}%`}}
-            ></div>
-          </div>
-        </div>
-        
-        <h2 className="text-lg sm:text-xl font-semibold mb-4 text-[var(--foreground)] leading-relaxed">
-          {currentQuestion.questionText}
-        </h2>
-        
-        {currentQuestion.isMultiSelect ? (
-          <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-            <div className="flex items-center text-amber-800">
-              <span className="text-xl mr-3">☑️</span>
-              <div>
-                <div className="font-semibold text-amber-900">Multiple Choice Question</div>
-                <div className="text-sm text-amber-700">Select ALL correct answers. You can choose more than one option.</div>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <div className="flex items-center text-blue-800">
-              <span className="text-xl mr-3">🔘</span>
-              <div>
-                <div className="font-semibold text-blue-900">Single Choice Question</div>
-                <div className="text-sm text-blue-700">Select the ONE best answer.</div>
-              </div>
-            </div>
-          </div>
-        )}
-        
-        <div className="space-y-4">
-          {currentQuestion.options.map(opt => {
-            const isSelected = currentQuestion.isMultiSelect 
-              ? (userAnswers[currentQuestion.id] as string[] || []).includes(opt.id)
-              : userAnswers[currentQuestion.id] === opt.id;
-              
-            return (
-              <div key={opt.id}>
-                <label className="flex items-start p-4 sm:p-5 rounded-xl border-2 border-[var(--border)] cursor-pointer transition-all hover:border-[var(--primary)] hover:bg-[var(--primary-lighter)] has-[:checked]:border-[var(--primary)] has-[:checked]:bg-[var(--primary-lighter)] group">
-                  <div className="flex-shrink-0 mt-1">
-                    <input
-                      type={currentQuestion.isMultiSelect ? "checkbox" : "radio"}
-                      name={`question-${currentQuestion.id}`}
-                      value={opt.id}
-                      checked={isSelected}
-                      onChange={() => handleOptionSelect(currentQuestion.id, opt.id, currentQuestion.isMultiSelect)}
-                      className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--primary)] bg-transparent border-2 border-[var(--border-hover)] focus:ring-[var(--primary)] focus:ring-2 focus:ring-offset-0"
-                    />
-                  </div>
-                  <span className="ml-3 sm:ml-4 text-base sm:text-lg text-[var(--foreground)] group-has-[:checked]:text-[var(--primary)] transition-colors leading-relaxed">
-                    {opt.optionText}
-                  </span>
-                </label>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-      
-      <div className="flex justify-between items-center">
-        <button
-            onClick={() => setCurrentQuestionIndex(i => Math.max(0, i - 1))}
-            disabled={currentQuestionIndex === 0}
-            className="bg-[var(--background-tertiary)] hover:bg-[var(--border)] text-[var(--foreground)] font-medium py-3 px-6 sm:px-8 rounded-xl disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-        >
-            ← Previous
-        </button>
-        {currentQuestionIndex < questions.length - 1 ? (
-            <button
-                onClick={() => setCurrentQuestionIndex(i => Math.min(questions.length - 1, i + 1))}
-                className="btn-neon-purple font-medium py-3 px-6 sm:px-8 rounded-xl"
-            >
-                Next →
-            </button>
-        ) : (
-            <button
-                onClick={handleSubmit}
-                disabled={submitting || !isQuizComplete()}
-                className="btn-neon-orange font-medium py-3 px-6 sm:px-8 rounded-xl disabled:opacity-30 disabled:cursor-not-allowed"
-            >
-                {submitting ? (
-                  <div className="flex items-center">
-                    <div className="spinner-neon w-5 h-5 mr-3"></div>
-                    Submitting...
-                  </div>
-                ) : (
-                  'Finish & See Results'
-                )}
-            </button>
-        )}
       </div>
     </div>
   );

@@ -3,8 +3,10 @@ export interface Certification {
   name: string;
   description: string | null;
   isAdobe: boolean;
-  price?: number; // Price in cents (USD)
-  isFree?: boolean; // Whether the course is completely free
+  price?: number;
+  isFree?: boolean;
+  isActive?: boolean;             // Si el examen está activo y disponible para estudiantes
+  examDurationMinutes?: number;   // Duración en minutos (default 30)
 }
 
 /**
