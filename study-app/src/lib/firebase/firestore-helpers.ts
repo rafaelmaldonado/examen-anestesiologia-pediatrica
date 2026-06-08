@@ -1,4 +1,4 @@
-import { getAdminDb as adminDb } from './admin';
+import { getAdminDb } from './admin';
 
 /**
  * Deletes a collection, including all its documents and subcollections, recursively.

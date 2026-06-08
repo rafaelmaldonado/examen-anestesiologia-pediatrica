@@ -1,14 +1,12 @@
 import { NextResponse } from "next/server";
-import { checkFirebaseAdmin } from "@/lib/firebase/admin-helpers";
+import { getAdminDb } from "@/lib/firebase/admin";
 import { getVerifiedAdmin } from "@/lib/firebase/auth-helper";
 import { deleteCollection } from "@/lib/firebase/firestore-helpers";
 
-// GET a single certification (publicly accessible)
+// GET a single certification
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { adminDb } = checkFirebaseAdmin();
     const { id } = await params;
-
     const docRef = getAdminDb().collection("certifications").doc(id);
     const doc = await docRef.get();
 
@@ -16,8 +14,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: "Certification not found" }, { status: 404 });
     }
 
-    const data = doc.data();
-    return NextResponse.json({ id: doc.id, ...data });
+    return NextResponse.json({ id: doc.id, ...doc.data() });
   } catch (error) {
     console.error("Error fetching certification:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
@@ -32,7 +29,6 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   }
 
   try {
-    const { adminDb } = checkFirebaseAdmin();
     const { id } = await params;
     const body = await request.json();
     const { name, description, isAdobe, price, isFree, isActive, examDurationMinutes } = body;
@@ -41,15 +37,14 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: "Name is required" }, { status: 400 });
     }
 
-    const docRef = getAdminDb().collection("certifications").doc(id);
-    await docRef.update({
-        name,
-        description,
-        isAdobe,
-        price: price || 0,
-        isFree: isFree || false,
-        isActive: isActive !== false,
-        examDurationMinutes: examDurationMinutes || 30,
+    await getAdminDb().collection("certifications").doc(id).update({
+      name,
+      description,
+      isAdobe,
+      price: price || 0,
+      isFree: isFree || false,
+      isActive: isActive !== false,
+      examDurationMinutes: examDurationMinutes || 30,
     });
 
     return NextResponse.json({ id, name, description, isAdobe, price, isFree, isActive, examDurationMinutes });
@@ -68,14 +63,9 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
   }
 
   try {
-    const { adminDb } = checkFirebaseAdmin();
     const { id } = await params;
-    const questionsPath = `certifications/${id}/questions`;
 
-    // First, recursively delete the 'questions' subcollection
-    await deleteCollection(questionsPath);
-
-    // Then, delete the certification document itself
+    await deleteCollection(`certifications/${id}/questions`);
     await getAdminDb().collection("certifications").doc(id).delete();
 
     return NextResponse.json({ message: "Certification and all its questions deleted successfully" });
