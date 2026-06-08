@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { adminDb } from "@/lib/firebase/admin";
+import { getAdminDb as adminDb } from "@/lib/firebase/admin";
 import { getVerifiedUser } from "@/lib/firebase/auth-helper";
 
 // GET ratings for a certification

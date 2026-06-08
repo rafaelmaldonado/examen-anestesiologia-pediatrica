@@ -1,6 +1,6 @@
 import * as admin from 'firebase-admin';
 
-function initFirebaseAdmin() {
+function initFirebaseAdmin(): admin.app.App {
   if (admin.apps.length > 0) {
     return admin.apps[0]!;
   }
@@ -27,7 +27,7 @@ function initFirebaseAdmin() {
       }
       return admin.initializeApp({ credential: admin.credential.cert(sa) });
     } catch (e) {
-      console.error('[Firebase Admin] Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY_JSON:', e);
+      throw new Error('[Firebase Admin] Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY_JSON: ' + e);
     }
   }
 
@@ -37,8 +37,7 @@ function initFirebaseAdmin() {
   );
 }
 
-// Lazy getters — do NOT call admin.auth() / admin.firestore() at module load time
-// because this file is imported during Next.js build when no credentials exist.
+// Lazy getters — only invoked at request time, never during Next.js build
 export function getAdminAuth(): admin.auth.Auth {
   return initFirebaseAdmin().auth();
 }
@@ -46,16 +45,3 @@ export function getAdminAuth(): admin.auth.Auth {
 export function getAdminDb(): admin.firestore.Firestore {
   return initFirebaseAdmin().firestore();
 }
-
-// Keep these for backward compatibility — they resolve lazily via getters
-export const adminAuth = new Proxy({} as admin.auth.Auth, {
-  get(_target, prop) {
-    return (getAdminAuth() as any)[prop];
-  },
-});
-
-export const adminDb = new Proxy({} as admin.firestore.Firestore, {
-  get(_target, prop) {
-    return (getAdminDb() as any)[prop];
-  },
-});

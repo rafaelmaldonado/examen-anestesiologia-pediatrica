@@ -1,10 +1,7 @@
-import { adminAuth, adminDb } from '@/lib/firebase/admin';
+import { getAdminAuth, getAdminDb } from '@/lib/firebase/admin';
 
 export function checkFirebaseAdmin() {
-  if (!adminAuth || !adminDb) {
-    throw new Error('Firebase Admin not initialized');
-  }
-  return { adminAuth, adminDb };
+  return { adminAuth: getAdminAuth(), adminDb: getAdminDb() };
 }
 
-export { adminAuth, adminDb };
+export { getAdminAuth as adminAuth, getAdminDb as adminDb };

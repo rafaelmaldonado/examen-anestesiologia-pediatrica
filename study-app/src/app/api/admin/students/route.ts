@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { adminDb, adminAuth } from '@/lib/firebase/admin';
+import { getAdminAuth as adminAuth, getAdminDb as adminDb } from '@/lib/firebase/admin';
 import { getVerifiedUser } from '@/lib/firebase/auth-helper';
 
 export async function GET() {
