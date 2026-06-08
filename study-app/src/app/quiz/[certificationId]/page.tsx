@@ -106,7 +106,7 @@ export default function QuizPage() {
 
   // Start timer only after the loading screen is gone and the first question is visible
   useEffect(() => {
-    if (questions.length > 0 && !loading && !examStarted && timeLeft !== null && timeLeft > 0) {
+    if (questions.length > 0 && !loading && !examStarted) {
       setExamStarted(true);
       startTimeRef.current = Date.now();
       timerRef.current = setInterval(() => {
@@ -119,8 +119,10 @@ export default function QuizPage() {
         });
       }, 1000);
     }
+    // Cleanup only on unmount — NOT on every timeLeft change
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [questions, loading, examStarted, timeLeft]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [questions.length, loading, examStarted]);
 
   // Auto-submit when time runs out — only after timer has actually started and counted down
   useEffect(() => {
