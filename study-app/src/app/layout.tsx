@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Study App",
-  description: "A web app to study for certifications.",
+  title: "Examen Anestesiología Pediátrica",
+  description: "Una aplicación para estudiar y practicar para el examen de anestesiología pediátrica, con exámenes de práctica, estadísticas y más. Desarrollada por Juan Maldonado para la Doctora Mariana Alejandra Toledo Angeles.",
 };
 
 export default function RootLayout({

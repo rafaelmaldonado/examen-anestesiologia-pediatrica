@@ -35,7 +35,7 @@ export default function SocialAuth({ onSuccess }: SocialAuthProps) {
 
       if (!sessionRes.ok) {
         const data = await sessionRes.json().catch(() => ({}));
-        throw new Error(data.error || 'No se pudo crear la sesión. Verifica las variables de entorno en Vercel.');
+        throw new Error(data.error || `Error del servidor (${sessionRes.status})`);
       }
 
       if (onSuccess) {
@@ -45,11 +45,7 @@ export default function SocialAuth({ onSuccess }: SocialAuthProps) {
       }
     } catch (err: any) {
       console.error('Error de autenticación:', err);
-      // Show the real error in development; generic message in production
-      const msg = process.env.NODE_ENV === 'development'
-        ? err.message
-        : 'No se pudo iniciar sesión con Google. Por favor, inténtalo de nuevo.';
-      setError(msg);
+      setError(err.message || 'No se pudo iniciar sesión con Google. Por favor, inténtalo de nuevo.');
     } finally {
       setLoading(false);
     }

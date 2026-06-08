@@ -234,45 +234,6 @@ export default function CertificationsAdminPage() {
                                     </p>
                                 )}
                             </div>
-                            <div>
-                                <label className="flex items-center space-x-3">
-                                    <input 
-                                        type="checkbox" 
-                                        checked={isAdobe} 
-                                        onChange={e => setIsAdobe(e.target.checked)} 
-                                        className="w-4 h-4 text-[var(--primary)] border-[var(--border-hover)] rounded focus:ring-[var(--primary)] focus:ring-2"
-                                    />
-                                    <span className="text-sm text-[var(--foreground)]">Marcar como certificación Adobe</span>
-                                </label>
-                            </div>
-                            <div>
-                                <label className="flex items-center space-x-3 mb-3">
-                                    <input 
-                                        type="checkbox" 
-                                        checked={isFree} 
-                                        onChange={e => setIsFree(e.target.checked)} 
-                                        className="w-4 h-4 text-[var(--success)] border-[var(--border-hover)] rounded focus:ring-[var(--success)] focus:ring-2"
-                                    />
-                                    <span className="text-sm text-[var(--foreground)]">Examen gratuito (sin pago requerido)</span>
-                                </label>
-                                {!isFree && (
-                                    <div>
-                                        <label className="block text-sm font-medium mb-2 text-[var(--foreground)]">Precio (USD)</label>
-                                        <input 
-                                            type="number" 
-                                            value={price} 
-                                            onChange={e => setPrice(e.target.value === '' ? '' : parseFloat(e.target.value))} 
-                                            className="input-neon w-full px-4 py-2.5 rounded-lg" 
-                                            placeholder="29.99"
-                                            min="0"
-                                            step="0.01"
-                                        />
-                                        <p className="text-xs text-[var(--foreground-muted)] mt-1">
-                                            Dejar vacío para usar precio por defecto
-                                        </p>
-                                    </div>
-                                )}
-                            </div>
                             <div className="flex justify-between pt-2">
                                 <button 
                                     type="submit" 

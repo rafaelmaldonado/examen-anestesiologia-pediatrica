@@ -31,9 +31,14 @@ export async function POST(request: NextRequest) {
     response.cookies.set(options);
 
     return response;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Session login error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    // Return the actual error message in development, and a safe message in production.
+    // The real message is visible in Vercel Function logs.
+    const message = process.env.NODE_ENV === 'development'
+      ? (error?.message || String(error))
+      : 'Error al crear la sesión. Revisa los logs de Vercel.';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 

@@ -5,35 +5,43 @@ const serviceAccountString = process.env.FIREBASE_SERVICE_ACCOUNT_KEY_JSON;
 if (!serviceAccountString) {
   console.warn(
     '[Firebase Admin] FIREBASE_SERVICE_ACCOUNT_KEY_JSON no está configurada. ' +
-    'Las operaciones del servidor no funcionarán. ' +
-    'Asegúrate de que el JSON esté en una sola línea en tu .env.local'
+    'Las operaciones del servidor no funcionarán.'
   );
 }
 
-let serviceAccount;
+let serviceAccount: admin.ServiceAccount | undefined;
 try {
   if (serviceAccountString) {
     serviceAccount = JSON.parse(serviceAccountString.trim());
+    // Vercel sometimes stores the private_key with literal \n instead of real newlines.
+    // This silently breaks credential parsing — fix it here.
+    if (serviceAccount && typeof (serviceAccount as any).private_key === 'string') {
+      (serviceAccount as any).private_key = (serviceAccount as any).private_key.replace(/\\n/g, '\n');
+    }
   }
 } catch (error) {
-  console.error(
-    '[Firebase Admin] Error al parsear FIREBASE_SERVICE_ACCOUNT_KEY_JSON. ' +
-    'El JSON debe estar en una sola línea sin saltos de línea reales. ' +
-    'Ejecuta: node scripts/fix-env.js para corregirlo. Error:', error
-  );
+  console.error('[Firebase Admin] Error al parsear FIREBASE_SERVICE_ACCOUNT_KEY_JSON:', error);
 }
 
-if (!admin.apps.length && serviceAccount) {
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-  });
-} else if (!admin.apps.length && process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID) {
-  try {
-    admin.initializeApp({
-      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-    });
-  } catch (error) {
-    console.warn('[Firebase Admin] Inicialización mínima falló:', error);
+if (!admin.apps.length) {
+  if (serviceAccount) {
+    try {
+      admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
+      });
+      console.log('[Firebase Admin] Inicializado con service account ✓');
+    } catch (error) {
+      console.error('[Firebase Admin] Falló la inicialización con service account:', error);
+    }
+  } else if (process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID) {
+    try {
+      admin.initializeApp({
+        projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+      });
+      console.warn('[Firebase Admin] Inicializado en modo mínimo — sin service account');
+    } catch (error) {
+      console.warn('[Firebase Admin] Inicialización mínima falló:', error);
+    }
   }
 }
 
