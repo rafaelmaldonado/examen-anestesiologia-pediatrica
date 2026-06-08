@@ -25,15 +25,14 @@ export async function POST(request: Request) {
       timeTaken?: number
     };
 
-    if (!certificationId || !answers || !Array.isArray(answers) || answers.length === 0) {
-      return NextResponse.json({ error: "Campos requeridos faltantes" }, { status: 400 });
+    if (!certificationId) {
+      return NextResponse.json({ error: "certificationId es requerido" }, { status: 400 });
     }
 
-    const questionIds = answers.map(a => a.questionId);
+    // answers can be empty if time ran out before any answer was given
+    const safeAnswers: UserAnswer[] = Array.isArray(answers) ? answers : [];
 
-    if (questionIds.some(id => !id)) {
-      return NextResponse.json({ error: "IDs de preguntas inválidos" }, { status: 400 });
-    }
+    const questionIds = safeAnswers.map(a => a.questionId).filter(Boolean);
 
     // Prevent duplicate submissions: check if result already exists
     const existingResult = await getAdminDb()
@@ -50,48 +49,50 @@ export async function POST(request: Request) {
       );
     }
 
-    // Fetch the questions the user answered
-    const questionsRef = getAdminDb().collection(`certifications/${certificationId}/questions`);
-    const questionsSnapshot = await questionsRef
-      .where(admin.firestore.FieldPath.documentId(), 'in', questionIds)
-      .get();
-    const correctQuestionsData = questionsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[];
-
     let correctCount = 0;
-    const resultsWithExplanations = answers.map(userAnswer => {
-      const question = correctQuestionsData.find(q => q.id === userAnswer.questionId);
-      if (!question) return null;
+    let resultsWithExplanations: any[] = [];
 
-      const correctOptions = question.options?.filter((opt: any) => opt.isCorrect) || [];
-      const correctOptionIds: string[] = correctOptions.map((opt: any) => opt.id);
+    // Only fetch/score questions if there are answers
+    if (questionIds.length > 0) {
+      const questionsSnapshot = await getAdminDb()
+        .collection(`certifications/${certificationId}/questions`)
+        .where(admin.firestore.FieldPath.documentId(), 'in', questionIds)
+        .get();
+      const correctQuestionsData = questionsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[];
 
-      let isUserCorrect = false;
+      resultsWithExplanations = safeAnswers.map(userAnswer => {
+        const question = correctQuestionsData.find(q => q.id === userAnswer.questionId);
+        if (!question) return null;
 
-      if (question.isMultiSelect) {
-        const userSelectedIds = userAnswer.selectedOptionId;
-        const hasAllCorrect = correctOptionIds.every((id: string) => userSelectedIds.includes(id));
-        const hasNoIncorrect = userSelectedIds.every((id: string) => correctOptionIds.includes(id));
-        isUserCorrect = hasAllCorrect && hasNoIncorrect && correctOptionIds.length > 0;
-      } else {
-        const correctOption = correctOptions[0];
-        isUserCorrect = correctOption && userAnswer.selectedOptionId.includes(correctOption.id);
-      }
+        const correctOptions = question.options?.filter((opt: any) => opt.isCorrect) || [];
+        const correctOptionIds: string[] = correctOptions.map((opt: any) => opt.id);
 
-      if (isUserCorrect) correctCount++;
+        let isUserCorrect = false;
+        if (question.isMultiSelect) {
+          const userSelectedIds = userAnswer.selectedOptionId;
+          const hasAllCorrect = correctOptionIds.every((id: string) => userSelectedIds.includes(id));
+          const hasNoIncorrect = userSelectedIds.every((id: string) => correctOptionIds.includes(id));
+          isUserCorrect = hasAllCorrect && hasNoIncorrect && correctOptionIds.length > 0;
+        } else {
+          const correctOption = correctOptions[0];
+          isUserCorrect = correctOption && userAnswer.selectedOptionId.includes(correctOption.id);
+        }
+        if (isUserCorrect) correctCount++;
 
-      return {
-        questionId: userAnswer.questionId,
-        questionText: question.questionText || 'Pregunta no encontrada',
-        selectedOptionId: userAnswer.selectedOptionId,
-        correctOptions,
-        allOptions: question.options || [],
-        isCorrect: isUserCorrect,
-        isMultiSelect: question.isMultiSelect || false,
-      };
-    }).filter(Boolean);
+        return {
+          questionId: userAnswer.questionId,
+          questionText: question.questionText || 'Pregunta no encontrada',
+          selectedOptionId: userAnswer.selectedOptionId,
+          correctOptions,
+          allOptions: question.options || [],
+          isCorrect: isUserCorrect,
+          isMultiSelect: question.isMultiSelect || false,
+        };
+      }).filter(Boolean);
+    }
 
-    const totalQuestions = answers.length;
-    const score = Math.round((correctCount / totalQuestions) * 100);
+    const totalQuestions = safeAnswers.length;
+    const score = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
     const finishedAt = new Date();
 
     // Fetch certification details

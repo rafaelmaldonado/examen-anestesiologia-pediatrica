@@ -20,7 +20,7 @@ export default function QuizPage() {
   const [error, setError] = useState<string | null>(null);
   const [errorCode, setErrorCode] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(0);
+  const [timeLeft, setTimeLeft] = useState<number | null>(null);
   const [examStarted, setExamStarted] = useState(false);
   const examDurationSecondsRef = useRef(30 * 60);
   const startTimeRef = useRef<number | null>(null);
@@ -48,7 +48,7 @@ export default function QuizPage() {
         const data = await res.json();
         const durationSeconds = (data.examDurationMinutes ?? 30) * 60;
         examDurationSecondsRef.current = durationSeconds;
-        setTimeLeft(durationSeconds);
+        setTimeLeft(durationSeconds);   // set before showing questions
 
         if (!data.questions?.length) {
           setError('No se encontraron preguntas para este examen.');
@@ -106,12 +106,12 @@ export default function QuizPage() {
 
   // Start timer only after the loading screen is gone and the first question is visible
   useEffect(() => {
-    if (questions.length > 0 && !loading && !examStarted) {
+    if (questions.length > 0 && !loading && !examStarted && timeLeft !== null && timeLeft > 0) {
       setExamStarted(true);
       startTimeRef.current = Date.now();
       timerRef.current = setInterval(() => {
         setTimeLeft(prev => {
-          if (prev <= 1) {
+          if (prev === null || prev <= 1) {
             clearInterval(timerRef.current!);
             return 0;
           }
@@ -120,7 +120,7 @@ export default function QuizPage() {
       }, 1000);
     }
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [questions, loading, examStarted]);
+  }, [questions, loading, examStarted, timeLeft]);
 
   // Auto-submit when time runs out — only after timer has actually started and counted down
   useEffect(() => {
@@ -208,10 +208,31 @@ export default function QuizPage() {
   }
 
   const currentQuestion = questions[currentQuestionIndex];
-  const isTimeLow = timeLeft > 0 && timeLeft <= 300;
+  const isTimeLow = timeLeft !== null && timeLeft > 0 && timeLeft <= 300;
+  const timeExpired = timeLeft === 0 && examStarted;
 
   return (
     <div className="container mx-auto p-4 sm:p-8 max-w-3xl min-h-screen">
+      {/* Time expired / submitting overlay */}
+      {(timeExpired || submitting) && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+          <div className="card-dark p-8 rounded-2xl text-center max-w-sm mx-4">
+            {timeExpired ? (
+              <>
+                <div className="text-5xl mb-4">⏰</div>
+                <h2 className="text-xl font-bold text-[var(--foreground)] mb-2">¡Tiempo agotado!</h2>
+                <p className="text-[var(--foreground-muted)] mb-4">Enviando tus respuestas...</p>
+                <div className="spinner-neon w-8 h-8 mx-auto"></div>
+              </>
+            ) : (
+              <>
+                <div className="spinner-neon w-10 h-10 mx-auto mb-4"></div>
+                <p className="text-[var(--foreground-muted)]">Enviando resultados...</p>
+              </>
+            )}
+          </div>
+        </div>
+      )}
       {/* Header with timer */}
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -223,9 +244,11 @@ export default function QuizPage() {
         <div className={`text-center px-5 py-3 rounded-xl font-mono text-2xl font-bold border-2 ${
           isTimeLow
             ? 'text-red-600 border-red-300 bg-red-50 animate-pulse'
+            : timeLeft === 0 && examStarted
+            ? 'text-red-600 border-red-400 bg-red-50'
             : 'text-[var(--foreground)] border-[var(--border)] bg-[var(--background-secondary)]'
         }`}>
-          ⏱ {formatTime(timeLeft)}
+          ⏱ {timeLeft === null ? '--:--' : formatTime(timeLeft)}
         </div>
       </div>
 
