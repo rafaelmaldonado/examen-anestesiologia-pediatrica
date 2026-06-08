@@ -170,7 +170,7 @@ export default function ResultsPage() {
                             onClick={() => setShowRatingForm(true)}
                             className="btn-neon-orange font-medium py-3 px-6 rounded-lg text-lg hover:scale-[1.02] transition-transform"
                         >
-                            ⭐ Calificar esta materia
+                            ⭐ Calificar este examen
                         </button>
                         <p className="text-sm text-[var(--foreground-muted)] mt-2">
                             Ayuda a otros compartiendo tu experiencia

@@ -26,7 +26,7 @@ export async function GET(request: Request) {
     // Fetch certification to check isActive and examDurationMinutes
     const certDoc = await adminDb.collection("certifications").doc(certificationId).get();
     if (!certDoc.exists) {
-      return NextResponse.json({ error: "Materia no encontrada" }, { status: 404 });
+      return NextResponse.json({ error: "Examen no encontrado" }, { status: 404 });
     }
     const certData = certDoc.data()!;
 
@@ -57,7 +57,7 @@ export async function GET(request: Request) {
     const snapshot = await questionsRef.get();
 
     if (snapshot.empty) {
-      return NextResponse.json({ error: "No hay preguntas disponibles para esta materia." }, { status: 404 });
+      return NextResponse.json({ error: "No hay preguntas disponibles para este examen." }, { status: 404 });
     }
 
     const allQuestions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[];

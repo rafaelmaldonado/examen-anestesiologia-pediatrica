@@ -81,7 +81,7 @@ export default function CertificationsAdminPage() {
     };
 
     const handleDelete = async (id: string) => {
-        if (confirm('¿Estás seguro de que deseas eliminar esta materia? También se eliminarán todas sus preguntas.')) {
+        if (confirm('¿Estás seguro de que deseas eliminar este examen? También se eliminarán todas sus preguntas.')) {
             try {
                 const res = await fetch(`/api/certifications/${id}`, { method: 'DELETE' });
                 if (!res.ok) throw new Error('Failed to delete certification');
@@ -108,8 +108,8 @@ export default function CertificationsAdminPage() {
             <div className="container mx-auto p-8 max-w-6xl min-h-screen">
             <div className="flex justify-between items-center mb-8">
                 <div>
-                    <h1 className="text-2xl font-bold text-[var(--foreground)] mb-1">Gestionar Materias</h1>
-                    <p className="text-sm text-[var(--foreground-muted)]">Crea y administra las materias del examen</p>
+                    <h1 className="text-2xl font-bold text-[var(--foreground)] mb-1">Gestionar Exámenes</h1>
+                    <p className="text-sm text-[var(--foreground-muted)]">Crea y administra los exámenes</p>
                 </div>
                 <Link href="/admin" className="btn-neon-purple py-2 px-4 rounded-lg text-sm font-medium">
                     ← Panel Admin
@@ -118,7 +118,7 @@ export default function CertificationsAdminPage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2">
-                    <h2 className="text-xl font-semibold mb-5 text-[var(--foreground)]">Materias existentes</h2>
+                    <h2 className="text-xl font-semibold mb-5 text-[var(--foreground)]">Exámenes existentes</h2>
                     {loading && (
                         <div className="text-center py-8">
                             <div className="spinner-neon w-8 h-8 mx-auto mb-4"></div>
@@ -178,7 +178,7 @@ export default function CertificationsAdminPage() {
 
                 <div>
                     <h2 className="text-xl font-semibold mb-5 text-[var(--foreground)]">
-                        {isEditing ? 'Editar Materia' : 'Agregar Nueva Materia'}
+                        {isEditing ? 'Editar Examen' : 'Agregar Nuevo Examen'}
                     </h2>
                     <div className="card-dark p-6 rounded-xl">
                         <form onSubmit={handleSubmit} className="space-y-5">
@@ -189,7 +189,7 @@ export default function CertificationsAdminPage() {
                                     value={name} 
                                     onChange={e => setName(e.target.value)} 
                                     className="input-neon w-full px-4 py-2.5 rounded-lg" 
-                                    placeholder="Nombre de la materia"
+                                    placeholder="Nombre del examen"
                                     required 
                                 />
                             </div>
@@ -199,7 +199,7 @@ export default function CertificationsAdminPage() {
                                     value={description} 
                                     onChange={e => setDescription(e.target.value)} 
                                     className="input-neon w-full px-4 py-2.5 rounded-lg h-28 resize-none" 
-                                    placeholder="Breve descripción de la materia"
+                                    placeholder="Breve descripción del examen"
                                 />
                             </div>
                             <div>
@@ -253,7 +253,7 @@ export default function CertificationsAdminPage() {
                                         onChange={e => setIsFree(e.target.checked)} 
                                         className="w-4 h-4 text-[var(--success)] border-[var(--border-hover)] rounded focus:ring-[var(--success)] focus:ring-2"
                                     />
-                                    <span className="text-sm text-[var(--foreground)]">Materia gratuita (sin pago requerido)</span>
+                                    <span className="text-sm text-[var(--foreground)]">Examen gratuito (sin pago requerido)</span>
                                 </label>
                                 {!isFree && (
                                     <div>

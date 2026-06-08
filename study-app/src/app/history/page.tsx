@@ -120,7 +120,7 @@ export default function HistoryPage() {
         <>
           {/* Progress by Certification */}
           <div className="mb-8">
-            <h2 className="text-xl font-semibold text-[var(--foreground)] mb-5">Progreso por Materia</h2>
+            <h2 className="text-xl font-semibold text-[var(--foreground)] mb-5">Progreso por Examen</h2>
             <div className="space-y-5">
               {Object.entries(progressByPlatform).map(([certName, certResults]) => {
                 const sortedResults = certResults.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
@@ -193,7 +193,7 @@ export default function HistoryPage() {
                       {result.score}%
                     </div>
                     <div>
-                      <h3 className="font-medium text-[var(--foreground)]">{result.certificationName || 'Materia desconocida'}</h3>
+                      <h3 className="font-medium text-[var(--foreground)]">{result.certificationName || 'Examen desconocido'}</h3>
                       <p className="text-sm text-[var(--foreground-muted)]">{new Date(result.createdAt).toLocaleDateString()}</p>
                     </div>
                   </div>

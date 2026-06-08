@@ -28,9 +28,9 @@ export default function AdminPage() {
                 <div className="card-dark p-6 sm:p-8 rounded-xl h-full">
                     <div className="flex items-center mb-3">
                       <span className="text-2xl mr-3">📜</span>
-                      <h3 className="text-lg font-semibold text-[var(--foreground)]">Gestionar Materias</h3>
+                      <h3 className="text-lg font-semibold text-[var(--foreground)]">Gestionar Exámenes</h3>
                     </div>
-                    <p className="text-[var(--foreground-muted)] text-sm">Crea, edita y elimina materias del examen.</p>
+                    <p className="text-[var(--foreground-muted)] text-sm">Crea, edita y elimina los exámenes.</p>
                   <div className="mt-4 text-[var(--primary)] group-hover:text-[var(--primary-light)] transition-colors text-sm font-medium">
                     Acceder →
                   </div>
@@ -56,7 +56,7 @@ export default function AdminPage() {
                     <span className="text-2xl mr-3">📊</span>
                     <h3 className="text-lg font-semibold text-[var(--foreground)]">Estadísticas</h3>
                   </div>
-                  <p className="text-[var(--foreground-muted)] text-sm">Consulta estadísticas generales de preguntas y materias.</p>
+                  <p className="text-[var(--foreground-muted)] text-sm">Consulta estadísticas generales de preguntas y exámenes.</p>
                   <div className="mt-4 text-[var(--primary)] group-hover:text-[var(--primary-light)] transition-colors text-sm font-medium">
                     Ver estadísticas →
                   </div>

@@ -102,7 +102,7 @@ export default function AdminStudentsPage() {
             onChange={e => setFilterMateria(e.target.value)}
             className="bg-[var(--background-secondary)] border border-[var(--border)] text-[var(--foreground)] rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-[var(--primary)]"
           >
-            <option value="">Todas las materias</option>
+            <option value="">Todos los exámenes</option>
             {materias.map(m => (
               <option key={m} value={m}>{m}</option>
             ))}
@@ -147,7 +147,7 @@ export default function AdminStudentsPage() {
                       className="text-left px-4 py-3 font-semibold text-[var(--foreground-muted)] cursor-pointer hover:text-[var(--foreground)] whitespace-nowrap"
                       onClick={() => toggleSort('certificationName')}
                     >
-                      Materia{sortIcon('certificationName')}
+                      Examen{sortIcon('certificationName')}
                     </th>
                     <th
                       className="text-center px-4 py-3 font-semibold text-[var(--foreground-muted)] cursor-pointer hover:text-[var(--foreground)] whitespace-nowrap"

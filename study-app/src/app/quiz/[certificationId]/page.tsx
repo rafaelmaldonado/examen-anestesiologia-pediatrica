@@ -51,7 +51,7 @@ export default function QuizPage() {
         setTimeLeft(durationSeconds);
 
         if (!data.questions?.length) {
-          setError('No se encontraron preguntas para esta materia.');
+          setError('No se encontraron preguntas para este examen.');
           return;
         }
         setQuestions(data.questions);

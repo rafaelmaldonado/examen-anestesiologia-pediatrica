@@ -15,19 +15,16 @@ export async function GET(request: NextRequest) {
     try {
         const decodedToken = await adminAuth.verifySessionCookie(sessionCookie, true);
         
-        // Get user record to access email and other user information
-        const userRecord = await adminAuth.getUser(decodedToken.uid);
-        
-        // Check if user is admin using environment variable
         const adminEmail = process.env.ADMIN_EMAIL?.trim();
-        const isAdmin = !!(adminEmail && userRecord.email?.trim() === adminEmail);
+        const tokenEmail = (decodedToken.email as string | undefined)?.trim();
+        const isAdmin = !!(adminEmail && tokenEmail === adminEmail);
         
         return NextResponse.json({ 
             status: 'success', 
             uid: decodedToken.uid,
-            email: userRecord.email,
-            emailVerified: userRecord.emailVerified,
-            isAdmin: isAdmin
+            email: tokenEmail,
+            emailVerified: decodedToken.email_verified,
+            isAdmin,
         }, { status: 200 });
     } catch (error) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

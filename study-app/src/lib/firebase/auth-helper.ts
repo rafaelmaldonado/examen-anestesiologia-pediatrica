@@ -51,17 +51,16 @@ export async function getVerifiedAdmin() {
     try {
         const decodedToken = await adminAuth.verifySessionCookie(sessionCookie, true);
         
-        // Get user record to access email
-        const userRecord = await adminAuth.getUser(decodedToken.uid);
-        
-        // Check if user is admin
+        // Use email from the token claims directly — avoids an extra getUser() network call
+        // that can fail/timeout in serverless environments.
         const adminEmail = process.env.ADMIN_EMAIL?.trim();
         if (!adminEmail) {
             console.error("ADMIN_EMAIL environment variable not set");
             return null;
         }
         
-        if (userRecord.email?.trim() !== adminEmail) {
+        const tokenEmail = (decodedToken.email as string | undefined)?.trim();
+        if (tokenEmail !== adminEmail) {
             return null;
         }
         

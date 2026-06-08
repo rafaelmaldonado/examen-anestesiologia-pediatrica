@@ -61,7 +61,7 @@ export default function HomePage() {
       <main className="container mx-auto p-6 sm:p-8 min-h-screen flex justify-center items-center">
         <div className="text-center">
           <div className="spinner-neon w-10 h-10 mx-auto mb-4"></div>
-          <div className="text-lg font-medium text-[var(--foreground-muted)]">Cargando materias...</div>
+          <div className="text-lg font-medium text-[var(--foreground-muted)]">Cargando exámenes...</div>
         </div>
       </main>
     );
@@ -71,7 +71,7 @@ export default function HomePage() {
     <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 min-h-screen max-w-6xl">
       <div className="text-center mb-10 sm:mb-14">
         <h1 className="text-3xl sm:text-4xl font-bold text-[var(--foreground)] mb-3">Examen Anestesiología Pediátrica</h1>
-        <p className="text-base sm:text-lg text-[var(--foreground-muted)]">Selecciona una materia para comenzar tu examen</p>
+        <p className="text-base sm:text-lg text-[var(--foreground-muted)]">Selecciona un examen para comenzar</p>
       </div>
 
       {error && (
