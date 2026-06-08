@@ -7,11 +7,22 @@ function initFirebaseAdmin(): admin.app.App {
 
   // Option 1: individual env vars (recommended for Vercel)
   const clientEmail = process.env.FIREBASE_CLIENT_EMAIL?.trim();
-  const rawPrivateKey = process.env.FIREBASE_PRIVATE_KEY;
+  let rawPrivateKey = process.env.FIREBASE_PRIVATE_KEY;
   const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID?.trim();
 
+  // Vercel sometimes wraps env var values in surrounding quotes — strip them
+  if (rawPrivateKey?.startsWith('"') && rawPrivateKey?.endsWith('"')) {
+    rawPrivateKey = rawPrivateKey.slice(1, -1);
+  }
+
+  console.log('[Firebase Admin] clientEmail present:', !!clientEmail);
+  console.log('[Firebase Admin] privateKey present:', !!rawPrivateKey, '| starts with:', rawPrivateKey?.substring(0, 27));
+  console.log('[Firebase Admin] projectId:', projectId);
+
   if (clientEmail && rawPrivateKey && projectId) {
+    // Convert literal \n sequences to real newlines (Vercel escaping)
     const privateKey = rawPrivateKey.replace(/\\n/g, '\n');
+    console.log('[Firebase Admin] Initializing with individual env vars');
     return admin.initializeApp({
       credential: admin.credential.cert({ projectId, clientEmail, privateKey }),
     });
@@ -25,6 +36,7 @@ function initFirebaseAdmin(): admin.app.App {
       if (typeof sa.private_key === 'string') {
         sa.private_key = sa.private_key.replace(/\\n/g, '\n');
       }
+      console.log('[Firebase Admin] Initializing with JSON blob');
       return admin.initializeApp({ credential: admin.credential.cert(sa) });
     } catch (e) {
       throw new Error('[Firebase Admin] Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY_JSON: ' + e);
@@ -32,8 +44,8 @@ function initFirebaseAdmin(): admin.app.App {
   }
 
   throw new Error(
-    '[Firebase Admin] No credentials found. Add FIREBASE_CLIENT_EMAIL + FIREBASE_PRIVATE_KEY ' +
-    'to your Vercel environment variables.'
+    '[Firebase Admin] No credentials found. ' +
+    'clientEmail=' + clientEmail + ' privateKey=' + (rawPrivateKey ? 'present' : 'MISSING') + ' projectId=' + projectId
   );
 }
 
