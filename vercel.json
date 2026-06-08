@@ -1,7 +1,3 @@
 {
-  "version": 2,
-  "buildCommand": "cd study-app && npm run build",
-  "outputDirectory": "study-app/.next",
-  "installCommand": "cd study-app && npm install",
-  "framework": "nextjs"
+  "version": 2
 }
