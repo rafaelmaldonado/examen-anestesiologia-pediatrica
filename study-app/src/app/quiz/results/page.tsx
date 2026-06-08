@@ -179,64 +179,6 @@ export default function ResultsPage() {
                 )}
             </div>
 
-            <div className="space-y-6">
-                {results.results.map((res, index) => (
-                    <div key={res.questionId} className="card-dark p-6 rounded-xl">
-                        <h3 className="font-semibold text-lg mb-4 text-[var(--foreground)]">
-                            Question {index + 1}: {res.questionText}
-                            {res.isMultiSelect && (
-                                <span className="ml-2 text-sm font-normal text-[var(--accent)]">
-                                    (Selección múltiple)
-                                </span>
-                            )}
-                        </h3>
-
-                        <div className="space-y-3">
-                            {res.allOptions.map((opt) => {
-                                const isSelected = res.selectedOptionId.includes(opt.id);
-                                const isCorrect = res.correctOptions.some(correctOpt => correctOpt.id === opt.id);
-
-                                let itemClass = 'p-4 rounded-lg border-2 transition-all';
-                                if (isCorrect) {
-                                    itemClass += ' bg-[var(--success-light)] border-green-300 text-green-800';
-                                } else if (isSelected && !isCorrect) {
-                                    itemClass += ' bg-[var(--error-light)] border-red-300 text-red-800';
-                                } else {
-                                    itemClass += ' bg-[var(--background-secondary)] border-[var(--border)] text-[var(--foreground-muted)]';
-                                }
-
-                                return (
-                                    <div key={opt.id} className={itemClass}>
-                                        <div className="flex items-center justify-between">
-                                            <p className="font-medium">{opt.optionText}</p>
-                                            <div className="flex items-center space-x-2">
-                                                {isSelected && (
-                                                    <span className="text-sm px-2 py-1 rounded bg-blue-50 text-blue-700 border border-blue-200">
-                                                        Tu respuesta
-                                                    </span>
-                                                )}
-                                                {isCorrect && (
-                                                    <span className="text-sm px-2 py-1 rounded bg-[var(--success-light)] text-green-700 border border-green-200">
-                                                        ✓ Correcta
-                                                    </span>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-
-                        {!res.isCorrect && res.correctOptions.length > 0 && res.correctOptions[0].explanation && (
-                            <div className="mt-4 p-4 bg-[var(--accent-lighter)] border border-amber-200 text-amber-900 rounded-lg">
-                                <h4 className="font-semibold mb-1">💡 Explicación:</h4>
-                                <p className="text-sm">{res.correctOptions[0].explanation}</p>
-                            </div>
-                        )}
-                    </div>
-                ))}
-            </div>
-
             <div className="text-center mt-12">
                 <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                     <Link href="/">
@@ -244,23 +186,8 @@ export default function ResultsPage() {
                             🏠 Volver al inicio
                         </span>
                     </Link>
-                    <Link href="/history">
-                        <span className="btn-neon-orange font-medium py-3 px-8 rounded-lg">
-                            📊 Ver historial
-                        </span>
-                    </Link>
                 </div>
             </div>
-
-            {/* Rating Form Modal */}
-            {showRatingForm && certification && (
-                <RatingForm
-                    certification={certification}
-                    onSubmit={handleRatingSubmit}
-                    onCancel={() => setShowRatingForm(false)}
-                    isSubmitting={isSubmittingRating}
-                />
-            )}
         </div>
     );
 }

@@ -176,9 +176,6 @@ export default function QuizPage() {
             <div className="text-5xl mb-4">✅</div>
             <h2 className="text-xl font-bold text-[var(--foreground)] mb-3">Examen ya completado</h2>
             <p className="text-[var(--foreground-muted)] mb-6">{error}</p>
-            <Link href="/history" className="btn-neon-purple py-3 px-8 rounded-lg inline-block">
-              Ver mi historial
-            </Link>
           </div>
         </div>
       );

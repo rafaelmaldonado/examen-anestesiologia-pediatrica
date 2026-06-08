@@ -70,14 +70,6 @@ export default function Navigation() {
               >
                 Inicio
               </Link>
-              <Link 
-                href="/history" 
-                className={`hover:text-[var(--primary)] transition-colors duration-200 text-sm font-medium ${
-                  pathname === '/history' ? 'text-[var(--primary)]' : 'text-[var(--foreground-muted)]'
-                }`}
-              >
-                Historial
-              </Link>
               
               {/* User Menu */}
               <div className="relative user-menu">
