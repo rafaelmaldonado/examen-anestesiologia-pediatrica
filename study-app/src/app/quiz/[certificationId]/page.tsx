@@ -25,6 +25,8 @@ export default function QuizPage() {
   const examDurationSecondsRef = useRef(30 * 60);
   const startTimeRef = useRef<number | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  // Use a ref (not state) to guard the timer start — prevents re-run side effects
+  const timerStartedRef = useRef(false);
 
   const params = useParams();
   const router = useRouter();
@@ -104,9 +106,11 @@ export default function QuizPage() {
     }
   }, [submitting, userAnswers, certificationId, router]);
 
-  // Start timer only after the loading screen is gone and the first question is visible
+  // Start timer once — when questions are visible and loading is done.
+  // Uses a ref guard so state changes never re-trigger this effect and kill the interval.
   useEffect(() => {
-    if (questions.length > 0 && !loading && !examStarted) {
+    if (questions.length > 0 && !loading && !timerStartedRef.current) {
+      timerStartedRef.current = true;
       setExamStarted(true);
       startTimeRef.current = Date.now();
       timerRef.current = setInterval(() => {
@@ -119,10 +123,9 @@ export default function QuizPage() {
         });
       }, 1000);
     }
-    // Cleanup only on unmount — NOT on every timeLeft change
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [questions.length, loading, examStarted]);
+    // Only clean up on unmount
+    return () => { clearInterval(timerRef.current!); };
+  }, [questions.length, loading]); // examStarted intentionally excluded — use ref instead
 
   // Auto-submit when time runs out — only after timer has actually started and counted down
   useEffect(() => {
