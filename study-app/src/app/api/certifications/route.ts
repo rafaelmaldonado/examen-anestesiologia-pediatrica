@@ -1,13 +1,9 @@
 import { NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase/admin";
-import { getVerifiedUser, getVerifiedAdmin } from "@/lib/firebase/auth-helper";
+import { getVerifiedAdmin } from "@/lib/firebase/auth-helper";
 
-// GET all certifications (publicly accessible)
+// GET all certifications (requires auth — middleware enforces this)
 export async function GET() {
-  if (!adminDb) {
-    return NextResponse.json({ error: "Database not initialized" }, { status: 500 });
-  }
-
   try {
     const snapshot = await adminDb.collection("certifications").orderBy("name").get();
     const certifications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -20,10 +16,6 @@ export async function GET() {
 
 // POST a new certification (admin only)
 export async function POST(request: Request) {
-  if (!adminDb) {
-    return NextResponse.json({ error: "Database not initialized" }, { status: 500 });
-  }
-
   const user = await getVerifiedAdmin();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized - Admin access required" }, { status: 401 });
