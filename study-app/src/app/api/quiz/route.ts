@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAdminDb as adminDb } from "@/lib/firebase/admin";
+import { getAdminDb } from "@/lib/firebase/admin";
 import { getVerifiedUser } from "@/lib/firebase/auth-helper";
 
 export async function GET(request: Request) {
@@ -18,13 +18,10 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "certificationId es requerido" }, { status: 400 });
   }
 
-  if (!adminDb) {
-    return NextResponse.json({ error: "Base de datos no disponible" }, { status: 500 });
-  }
 
   try {
     // Fetch certification to check isActive and examDurationMinutes
-    const certDoc = await adminDb.collection("certifications").doc(certificationId).get();
+    const certDoc = await getAdminDb().collection("certifications").doc(certificationId).get();
     if (!certDoc.exists) {
       return NextResponse.json({ error: "Examen no encontrado" }, { status: 404 });
     }
@@ -39,7 +36,7 @@ export async function GET(request: Request) {
     }
 
     // Check one-attempt rule: does user already have a result for this certification?
-    const existingResult = await adminDb
+    const existingResult = await getAdminDb()
       .collection("testResults")
       .where("userId", "==", user.uid)
       .where("certificationId", "==", certificationId)
@@ -53,7 +50,7 @@ export async function GET(request: Request) {
       );
     }
 
-    const questionsRef = adminDb.collection(`certifications/${certificationId}/questions`);
+    const questionsRef = getAdminDb().collection(`certifications/${certificationId}/questions`);
     const snapshot = await questionsRef.get();
 
     if (snapshot.empty) {

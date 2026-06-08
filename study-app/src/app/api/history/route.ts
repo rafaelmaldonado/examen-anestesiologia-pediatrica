@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAdminDb as adminDb } from "@/lib/firebase/admin";
+import { getAdminDb } from "@/lib/firebase/admin";
 import { getVerifiedUser } from "@/lib/firebase/auth-helper";
 
 export async function GET() {
@@ -12,7 +12,7 @@ export async function GET() {
     const userId = user.uid;
 
     // Fetch user's test results
-    const resultsRef = adminDb.collection("testResults");
+    const resultsRef = getAdminDb().collection("testResults");
     const snapshot = await resultsRef
       .where("userId", "==", userId)
       .orderBy("createdAt", "desc")
@@ -31,7 +31,7 @@ export async function GET() {
       // Fetch certification name
       let certificationName = 'Unknown Certification';
       try {
-        const certDoc = await adminDb.collection('certifications').doc(data.certificationId).get();
+        const certDoc = await getAdminDb().collection('certifications').doc(data.certificationId).get();
         if (certDoc.exists) {
           certificationName = certDoc.data()?.name || 'Unknown Certification';
         }

@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
-import { getAdminDb as adminDb } from "@/lib/firebase/admin";
+import { getAdminDb } from "@/lib/firebase/admin";
 import { getVerifiedAdmin } from "@/lib/firebase/auth-helper";
 
 // GET all certifications (requires auth — middleware enforces this)
 export async function GET() {
   try {
-    const snapshot = await adminDb.collection("certifications").orderBy("name").get();
+    const snapshot = await getAdminDb().collection("certifications").orderBy("name").get();
     const certifications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     return NextResponse.json(certifications);
   } catch (error) {
@@ -29,7 +29,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Name is required" }, { status: 400 });
     }
 
-    const docRef = await adminDb.collection("certifications").add({
+    const docRef = await getAdminDb().collection("certifications").add({
       name,
       description: description || "",
       isAdobe: isAdobe || false,

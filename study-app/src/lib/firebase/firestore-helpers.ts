@@ -6,7 +6,7 @@ import { getAdminDb as adminDb } from './admin';
  * @param batchSize The number of documents to delete in each batch.
  */
 export async function deleteCollection(collectionPath: string, batchSize: number = 50) {
-    const collectionRef = adminDb.collection(collectionPath);
+    const collectionRef = getAdminDb().collection(collectionPath);
     const query = collectionRef.orderBy('__name__').limit(batchSize);
 
     return new Promise((resolve, reject) => {
@@ -24,7 +24,7 @@ async function deleteQueryBatch(query: FirebaseFirestore.Query, resolve: (value?
     }
 
     // Delete documents in a batch
-    const batch = adminDb.batch();
+    const batch = getAdminDb().batch();
     for (const doc of snapshot.docs) {
         // Recursively delete subcollections of each document
         const subcollections = await doc.ref.listCollections();

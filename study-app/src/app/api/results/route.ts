@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAdminDb as adminDb } from "@/lib/firebase/admin";
+import { getAdminDb } from "@/lib/firebase/admin";
 import { getVerifiedUser } from "@/lib/firebase/auth-helper";
 import * as admin from 'firebase-admin';
 
@@ -35,12 +35,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "IDs de preguntas inválidos" }, { status: 400 });
     }
 
-    if (!adminDb) {
-      return NextResponse.json({ error: "Base de datos no disponible" }, { status: 500 });
-    }
-
     // Prevent duplicate submissions: check if result already exists
-    const existingResult = await adminDb
+    const existingResult = await getAdminDb()
       .collection("testResults")
       .where("userId", "==", userId)
       .where("certificationId", "==", certificationId)
@@ -55,7 +51,7 @@ export async function POST(request: Request) {
     }
 
     // Fetch the questions the user answered
-    const questionsRef = adminDb.collection(`certifications/${certificationId}/questions`);
+    const questionsRef = getAdminDb().collection(`certifications/${certificationId}/questions`);
     const questionsSnapshot = await questionsRef
       .where(admin.firestore.FieldPath.documentId(), 'in', questionIds)
       .get();
@@ -101,12 +97,12 @@ export async function POST(request: Request) {
     // Fetch certification details
     let certificationName = '';
     try {
-      const certDoc = await adminDb.collection("certifications").doc(certificationId).get();
+      const certDoc = await getAdminDb().collection("certifications").doc(certificationId).get();
       if (certDoc.exists) certificationName = certDoc.data()?.name || '';
     } catch {}
 
     // Save result to Firestore
-    await adminDb.collection("testResults").add({
+    await getAdminDb().collection("testResults").add({
       userId,
       userEmail: user.email || null,
       certificationId,

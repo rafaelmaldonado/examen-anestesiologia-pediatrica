@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAdminDb as adminDb } from "@/lib/firebase/admin";
+import { getAdminDb } from "@/lib/firebase/admin";
 import { getVerifiedAdmin } from "@/lib/firebase/auth-helper";
 import { randomUUID } from "crypto";
 
@@ -17,14 +17,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing or invalid required fields" }, { status: 400 });
     }
 
-    if (!adminDb) {
-      return NextResponse.json({ error: "Database connection failed" }, { status: 500 });
-    }
-
-    const collectionRef = adminDb.collection(`certifications/${certificationId}/questions`);
+    const collectionRef = getAdminDb().collection(`certifications/${certificationId}/questions`);
 
     // Use a batched write for efficiency
-    const batch = adminDb.batch();
+    const batch = getAdminDb().batch();
 
     let addedCount = 0;
     for (const question of questions) {

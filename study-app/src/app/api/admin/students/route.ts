@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getAdminAuth as adminAuth, getAdminDb as adminDb } from '@/lib/firebase/admin';
+import { getAdminAuth, getAdminDb } from '@/lib/firebase/admin';
 import { getVerifiedUser } from '@/lib/firebase/auth-helper';
 
 export async function GET() {
@@ -14,13 +14,9 @@ export async function GET() {
     return NextResponse.json({ error: 'Acceso denegado' }, { status: 403 });
   }
 
-  if (!adminDb) {
-    return NextResponse.json({ error: 'Base de datos no disponible' }, { status: 500 });
-  }
-
   try {
     // Fetch all test results
-    const snapshot = await adminDb
+    const snapshot = await getAdminDb()
       .collection('testResults')
       .orderBy('createdAt', 'desc')
       .limit(500)
@@ -49,7 +45,7 @@ export async function GET() {
         if (result.userEmail) return result;
         try {
           if (adminAuth) {
-            const firebaseUser = await adminAuth.getUser(result.userId);
+            const firebaseUser = await getAdminAuth().getUser(result.userId);
             return { ...result, userEmail: firebaseUser.email || result.userId };
           }
         } catch {

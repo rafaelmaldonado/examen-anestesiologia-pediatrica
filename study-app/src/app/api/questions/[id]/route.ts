@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAdminDb as adminDb } from "@/lib/firebase/admin";
+import { getAdminDb } from "@/lib/firebase/admin";
 import { getVerifiedAdmin } from "@/lib/firebase/auth-helper";
 
 import { randomUUID } from "crypto";
@@ -32,8 +32,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         id: opt.id || randomUUID(), // Add ID if it doesn't exist
     }));
 
-    if (adminDb) {
-      const docRef = adminDb.collection(`certifications/${certificationId}/questions`).doc(questionId);
+    if (true) {
+      const docRef = getAdminDb().collection(`certifications/${certificationId}/questions`).doc(questionId);
       await docRef.update({
           questionText,
           isMultiSelect: isMultiSelect || false,
@@ -64,8 +64,8 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
   }
 
   try {
-    if (adminDb) {
-      await adminDb.collection(`certifications/${certificationId}/questions`).doc(questionId).delete();
+    if (true) {
+      await getAdminDb().collection(`certifications/${certificationId}/questions`).doc(questionId).delete();
     }
     return NextResponse.json({ message: "Question deleted successfully" });
   } catch (error) {

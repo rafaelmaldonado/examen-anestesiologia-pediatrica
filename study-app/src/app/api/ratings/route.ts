@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAdminDb as adminDb } from "@/lib/firebase/admin";
+import { getAdminDb } from "@/lib/firebase/admin";
 import { getVerifiedUser } from "@/lib/firebase/auth-helper";
 
 // GET ratings for a certification
@@ -11,12 +11,9 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "certificationId is required" }, { status: 400 });
   }
 
-  if (!adminDb) {
-    return NextResponse.json({ error: "Database not initialized" }, { status: 500 });
-  }
 
   try {
-    const ratingsSnapshot = await adminDb
+    const ratingsSnapshot = await getAdminDb()
       .collection("ratings")
       .where("certificationId", "==", certificationId)
       .get();
@@ -75,9 +72,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!adminDb) {
-    return NextResponse.json({ error: "Database not initialized" }, { status: 500 });
-  }
 
   try {
     const body = await request.json();
@@ -90,10 +84,10 @@ export async function POST(request: Request) {
     }
 
     // Get user information
-    const userRecord = await require("@/lib/firebase/admin").adminAuth.getUser(user.uid);
+    const userRecord = await require("@/lib/firebase/admin").getAdminAuth().getUser(user.uid);
 
     // Check if user has already rated this certification
-    const existingRatingSnapshot = await adminDb
+    const existingRatingSnapshot = await getAdminDb()
       .collection("ratings")
       .where("userId", "==", user.uid)
       .where("certificationId", "==", certificationId)
@@ -123,7 +117,7 @@ export async function POST(request: Request) {
         createdAt: new Date(),
       };
 
-      const docRef = await adminDb.collection("ratings").add(ratingData);
+      const docRef = await getAdminDb().collection("ratings").add(ratingData);
 
       return NextResponse.json({ 
         id: docRef.id,

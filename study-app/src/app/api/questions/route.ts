@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAdminDb as adminDb } from "@/lib/firebase/admin";
+import { getAdminDb } from "@/lib/firebase/admin";
 import { getVerifiedUser, getVerifiedAdmin } from "@/lib/firebase/auth-helper";
 
 // GET all questions for a specific certification
@@ -12,8 +12,8 @@ export async function GET(request: Request) {
   }
 
   try {
-    if (adminDb) {
-      const snapshot = await adminDb.collection(`certifications/${certificationId}/questions`).get();
+    if (true) {
+      const snapshot = await getAdminDb().collection(`certifications/${certificationId}/questions`).get();
       const questions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       return NextResponse.json(questions);
     }
@@ -50,8 +50,8 @@ export async function POST(request: Request) {
         })),
     };
 
-    if (adminDb) {
-      const docRef = await adminDb.collection(`certifications/${certificationId}/questions`).add(newQuestionData);
+    if (true) {
+      const docRef = await getAdminDb().collection(`certifications/${certificationId}/questions`).add(newQuestionData);
       return NextResponse.json({ id: docRef.id, ...newQuestionData }, { status: 201 });
     }
 

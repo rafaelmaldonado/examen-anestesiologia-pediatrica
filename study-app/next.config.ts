@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
+import path from "path";
 
 const nextConfig: NextConfig = {
+  // Tell Next.js the monorepo root so it can resolve packages correctly
+  outputFileTracingRoot: path.join(__dirname, "../"),
   trailingSlash: true,
   images: {
     unoptimized: true,

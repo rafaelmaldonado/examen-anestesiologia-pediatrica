@@ -9,7 +9,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     const { adminDb } = checkFirebaseAdmin();
     const { id } = await params;
 
-    const docRef = adminDb.collection("certifications").doc(id);
+    const docRef = getAdminDb().collection("certifications").doc(id);
     const doc = await docRef.get();
 
     if (!doc.exists) {
@@ -41,7 +41,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: "Name is required" }, { status: 400 });
     }
 
-    const docRef = adminDb.collection("certifications").doc(id);
+    const docRef = getAdminDb().collection("certifications").doc(id);
     await docRef.update({
         name,
         description,
@@ -76,7 +76,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     await deleteCollection(questionsPath);
 
     // Then, delete the certification document itself
-    await adminDb.collection("certifications").doc(id).delete();
+    await getAdminDb().collection("certifications").doc(id).delete();
 
     return NextResponse.json({ message: "Certification and all its questions deleted successfully" });
   } catch (error) {
