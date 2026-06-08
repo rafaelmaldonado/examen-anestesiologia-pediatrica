@@ -1,5 +1,6 @@
 import { NextResponse, NextRequest } from "next/server";
 import { getAdminAuth } from "@/lib/firebase/admin";
+import { isAdminEmail } from "@/lib/firebase/auth-helper";
 
 export async function GET(request: NextRequest) {
     const sessionCookie = request.cookies.get('session')?.value;
@@ -10,17 +11,14 @@ export async function GET(request: NextRequest) {
 
     try {
         const decodedToken = await getAdminAuth().verifySessionCookie(sessionCookie, true);
-
-        const adminEmail = process.env.ADMIN_EMAIL?.trim();
-        const tokenEmail = (decodedToken.email as string | undefined)?.trim();
-        const isAdmin = !!(adminEmail && tokenEmail === adminEmail);
+        const tokenEmail = decodedToken.email as string | undefined;
 
         return NextResponse.json({
             status: 'success',
             uid: decodedToken.uid,
             email: tokenEmail,
             emailVerified: decodedToken.email_verified,
-            isAdmin,
+            isAdmin: isAdminEmail(tokenEmail),
         }, { status: 200 });
     } catch (error) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

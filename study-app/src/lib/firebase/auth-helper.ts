@@ -1,6 +1,15 @@
 import { cookies } from 'next/headers';
 import { getAdminAuth } from './admin';
 
+function isAdminEmail(email: string | undefined): boolean {
+  if (!email) return false;
+  const adminEmails = (process.env.ADMIN_EMAIL || '')
+    .split(',')
+    .map(e => e.trim().toLowerCase())
+    .filter(Boolean);
+  return adminEmails.includes(email.trim().toLowerCase());
+}
+
 export async function getVerifiedUser() {
     const cookieStore = await cookies();
     const sessionCookie = cookieStore.get('session')?.value;
@@ -22,19 +31,13 @@ export async function getVerifiedAdmin() {
 
     try {
         const decodedToken = await getAdminAuth().verifySessionCookie(sessionCookie, true);
-
-        const adminEmail = process.env.ADMIN_EMAIL?.trim();
-        if (!adminEmail) {
-            console.error("ADMIN_EMAIL environment variable not set");
-            return null;
-        }
-
-        const tokenEmail = (decodedToken.email as string | undefined)?.trim();
-        if (tokenEmail !== adminEmail) return null;
-
+        const tokenEmail = (decodedToken.email as string | undefined);
+        if (!isAdminEmail(tokenEmail)) return null;
         return decodedToken;
     } catch (error) {
         console.error("Admin auth verification error:", error);
         return null;
     }
 }
+
+export { isAdminEmail };

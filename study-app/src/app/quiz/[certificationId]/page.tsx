@@ -104,9 +104,9 @@ export default function QuizPage() {
     }
   }, [submitting, userAnswers, certificationId, router]);
 
-  // Start timer when questions are loaded
+  // Start timer only after the loading screen is gone and the first question is visible
   useEffect(() => {
-    if (questions.length > 0 && !examStarted) {
+    if (questions.length > 0 && !loading && !examStarted) {
       setExamStarted(true);
       startTimeRef.current = Date.now();
       timerRef.current = setInterval(() => {
@@ -120,7 +120,7 @@ export default function QuizPage() {
       }, 1000);
     }
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [questions, examStarted]);
+  }, [questions, loading, examStarted]);
 
   // Auto-submit when time runs out — only after timer has actually started and counted down
   useEffect(() => {
