@@ -88,14 +88,22 @@ export default function HomePage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {certifications.map((cert) => {
             const ratingStats = ratings[cert.id];
+            const isActive = cert.isActive !== false;
             return (
-              <div key={cert.id} className="card-dark p-6 sm:p-8 rounded-xl h-full transition-all duration-200 group">
+              <div key={cert.id} className={`card-dark p-6 sm:p-8 rounded-xl h-full transition-all duration-200 group ${!isActive ? 'opacity-60' : ''}`}>
                 <div>
-                  <h2 className="mb-3 text-xl font-semibold tracking-tight text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors duration-200">
-                    {cert.name}
-                  </h2>
+                  <div className="flex items-center gap-2 mb-3">
+                    <h2 className="text-xl font-semibold tracking-tight text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors duration-200">
+                      {cert.name}
+                    </h2>
+                    {!isActive && (
+                      <span className="inline-block bg-gray-100 text-gray-500 text-xs font-medium px-2 py-0.5 rounded-full border border-gray-300 whitespace-nowrap">
+                        🔒 Inactivo
+                      </span>
+                    )}
+                  </div>
                   <p className="font-normal text-[var(--foreground-muted)] mb-4 leading-relaxed text-sm">
-                    {cert.description || 'No description available.'}
+                    {cert.description || ''}
                   </p>
                   
                   {/* Rating Display */}
@@ -120,19 +128,20 @@ export default function HomePage() {
                   )}
 
                   <div className="flex items-center justify-between">
-                    {cert.isAdobe && (
-                      <span className="inline-block bg-red-50 text-red-700 text-xs font-medium px-3 py-1 rounded-full border border-red-200">
-                        Adobe
-                      </span>
-                    )}
-                    {user ? (
-                      <Link href={`/quiz/${cert.id}`} className="text-[var(--primary)] hover:text-[var(--primary-light)] transition-colors duration-200 font-semibold text-sm">
-                        Iniciar Examen →
-                      </Link>
+                    {isActive ? (
+                      user ? (
+                        <Link href={`/quiz/${cert.id}`} className="text-[var(--primary)] hover:text-[var(--primary-light)] transition-colors duration-200 font-semibold text-sm">
+                          Iniciar Examen →
+                        </Link>
+                      ) : (
+                        <Link href="/auth" className="text-[var(--foreground-muted)] hover:text-[var(--primary)] transition-colors duration-200 font-semibold text-sm">
+                          Inicia sesión para comenzar →
+                        </Link>
+                      )
                     ) : (
-                      <Link href="/auth" className="text-[var(--foreground-muted)] hover:text-[var(--primary)] transition-colors duration-200 font-semibold text-sm">
-                        Inicia sesión para comenzar →
-                      </Link>
+                      <span className="text-gray-400 text-sm cursor-not-allowed">
+                        Examen no disponible
+                      </span>
                     )}
                   </div>
                 </div>

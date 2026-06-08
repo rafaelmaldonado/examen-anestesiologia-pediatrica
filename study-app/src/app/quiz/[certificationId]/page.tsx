@@ -122,9 +122,9 @@ export default function QuizPage() {
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [questions, examStarted]);
 
-  // Auto-submit when time runs out
+  // Auto-submit when time runs out — only after timer has actually started and counted down
   useEffect(() => {
-    if (timeLeft === 0 && examStarted && !submitting) {
+    if (timeLeft === 0 && examStarted && !submitting && startTimeRef.current !== null) {
       handleSubmit(true);
     }
   }, [timeLeft, examStarted, submitting, handleSubmit]);

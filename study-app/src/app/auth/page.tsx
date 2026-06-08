@@ -2,14 +2,26 @@
 export const dynamic = 'force-dynamic';
 
 import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+import { useAuth } from '@/app/providers';
 import SocialAuth from '@/components/SocialAuth';
 
 export default function AuthPage() {
   const router = useRouter();
+  const { user, loading } = useAuth();
+
+  // If already logged in, redirect to home
+  useEffect(() => {
+    if (!loading && user) {
+      router.replace('/');
+    }
+  }, [user, loading, router]);
 
   const handleAuthSuccess = () => {
     router.push('/');
   };
+
+  if (loading) return null;
 
   return (
     <div className="min-h-screen bg-[var(--background)] flex items-center justify-center p-4">
