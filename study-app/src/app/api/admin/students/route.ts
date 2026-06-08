@@ -1,16 +1,10 @@
 import { NextResponse } from 'next/server';
 import { getAdminAuth, getAdminDb } from '@/lib/firebase/admin';
-import { getVerifiedUser } from '@/lib/firebase/auth-helper';
+import { getVerifiedAdmin } from '@/lib/firebase/auth-helper';
 
 export async function GET() {
-  const user = await getVerifiedUser();
+  const user = await getVerifiedAdmin();
   if (!user) {
-    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
-  }
-
-  // Only admins can access this endpoint
-  const adminEmail = process.env.ADMIN_EMAIL;
-  if (user.email !== adminEmail) {
     return NextResponse.json({ error: 'Acceso denegado' }, { status: 403 });
   }
 
