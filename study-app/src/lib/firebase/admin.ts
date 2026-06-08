@@ -1,48 +1,52 @@
 import * as admin from 'firebase-admin';
 
-const serviceAccountString = process.env.FIREBASE_SERVICE_ACCOUNT_KEY_JSON;
+function getCredential(): admin.credential.Credential | null {
+  // Option 1: individual env vars (recommended for Vercel — avoids JSON escaping issues)
+  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL?.trim();
+  const rawPrivateKey = process.env.FIREBASE_PRIVATE_KEY;
+  const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID?.trim();
 
-if (!serviceAccountString) {
-  console.warn(
-    '[Firebase Admin] FIREBASE_SERVICE_ACCOUNT_KEY_JSON no está configurada. ' +
-    'Las operaciones del servidor no funcionarán.'
-  );
-}
+  if (clientEmail && rawPrivateKey && projectId) {
+    // Vercel escapes \n in env vars — convert back to real newlines
+    const privateKey = rawPrivateKey.replace(/\\n/g, '\n');
+    console.log('[Firebase Admin] Using individual env vars for credential');
+    return admin.credential.cert({ projectId, clientEmail, privateKey });
+  }
 
-let serviceAccount: admin.ServiceAccount | undefined;
-try {
+  // Option 2: full JSON blob
+  const serviceAccountString = process.env.FIREBASE_SERVICE_ACCOUNT_KEY_JSON;
   if (serviceAccountString) {
-    serviceAccount = JSON.parse(serviceAccountString.trim());
-    // Vercel sometimes stores the private_key with literal \n instead of real newlines.
-    // This silently breaks credential parsing — fix it here.
-    if (serviceAccount && typeof (serviceAccount as any).private_key === 'string') {
-      (serviceAccount as any).private_key = (serviceAccount as any).private_key.replace(/\\n/g, '\n');
+    try {
+      const sa = JSON.parse(serviceAccountString.trim());
+      // Fix mangled newlines in private_key
+      if (typeof sa.private_key === 'string') {
+        sa.private_key = sa.private_key.replace(/\\n/g, '\n');
+      }
+      console.log('[Firebase Admin] Using FIREBASE_SERVICE_ACCOUNT_KEY_JSON for credential');
+      return admin.credential.cert(sa);
+    } catch (e) {
+      console.error('[Firebase Admin] Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY_JSON:', e);
     }
   }
-} catch (error) {
-  console.error('[Firebase Admin] Error al parsear FIREBASE_SERVICE_ACCOUNT_KEY_JSON:', error);
+
+  console.error(
+    '[Firebase Admin] No credentials found. Add FIREBASE_CLIENT_EMAIL + FIREBASE_PRIVATE_KEY ' +
+    '(or FIREBASE_SERVICE_ACCOUNT_KEY_JSON) to your Vercel environment variables.'
+  );
+  return null;
 }
 
 if (!admin.apps.length) {
-  if (serviceAccount) {
+  const credential = getCredential();
+  if (credential) {
     try {
-      admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
-      });
-      console.log('[Firebase Admin] Inicializado con service account ✓');
-    } catch (error) {
-      console.error('[Firebase Admin] Falló la inicialización con service account:', error);
-    }
-  } else if (process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID) {
-    try {
-      admin.initializeApp({
-        projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-      });
-      console.warn('[Firebase Admin] Inicializado en modo mínimo — sin service account');
-    } catch (error) {
-      console.warn('[Firebase Admin] Inicialización mínima falló:', error);
+      admin.initializeApp({ credential });
+      console.log('[Firebase Admin] App initialized ✓');
+    } catch (e) {
+      console.error('[Firebase Admin] initializeApp failed:', e);
     }
   }
+  // Do NOT fall back to projectId-only init — it tries ADC and always fails in Vercel
 }
 
 const adminAuth = admin.apps.length > 0 ? admin.auth() : null;
