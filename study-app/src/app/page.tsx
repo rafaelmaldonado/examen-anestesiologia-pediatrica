@@ -105,27 +105,6 @@ export default function HomePage() {
                   <p className="font-normal text-[var(--foreground-muted)] mb-4 leading-relaxed text-sm">
                     {cert.description || ''}
                   </p>
-                  
-                  {/* Rating Display */}
-                  {ratingStats && ratingStats.totalRatings > 0 ? (
-                    <div className="mb-4 p-3 bg-[var(--background-secondary)] rounded-lg border border-[var(--border)]">
-                      <div className="flex items-center justify-between">
-                        <StarRating 
-                          rating={ratingStats.averageRating} 
-                          readonly 
-                          size="sm" 
-                          showText={false}
-                        />
-                        <span className="text-sm text-[var(--foreground-muted)]">
-                          {ratingStats.averageRating} ({ratingStats.totalRatings})
-                        </span>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="mb-4 p-3 bg-[var(--background-secondary)] rounded-lg border border-[var(--border)]">
-                      <span className="text-xs text-[var(--foreground-muted)]">Sin calificaciones aún</span>
-                    </div>
-                  )}
 
                   <div className="flex items-center justify-between">
                     {isActive ? (
