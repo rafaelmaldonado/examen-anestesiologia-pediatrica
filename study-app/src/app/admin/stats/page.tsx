@@ -85,19 +85,19 @@ export default function AdminStatsPage() {
 
   return (
     <AdminGuard>
-      <div className="container mx-auto p-8 min-h-screen">
-      <div className="flex justify-between items-center mb-8">
+      <div className="container mx-auto px-4 py-6 sm:px-6 sm:py-8">
+      <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center mb-6 sm:mb-8">
         <div>
           <Link href="/admin" className="text-[var(--primary)] hover:text-[var(--primary-light)] transition-colors mb-2 inline-block text-sm">
             ← Back to Admin Dashboard
           </Link>
-          <h1 className="text-2xl font-bold text-[var(--foreground)]">Certification Statistics</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-[var(--foreground)]">Certification Statistics</h1>
         </div>
       </div>
 
       {/* Summary Card */}
-      <div className="card-dark p-6 rounded-xl mb-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+      <div className="card-dark p-5 sm:p-6 rounded-xl mb-6 sm:mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 sm:gap-6 text-center">
           <div>
             <div className="text-3xl font-bold text-[var(--accent)]">{stats.length}</div>
             <div className="text-sm text-[var(--foreground-muted)]">Total Certifications</div>
@@ -117,14 +117,14 @@ export default function AdminStatsPage() {
 
       {/* Detailed Stats */}
       <div className="space-y-4">
-        <h2 className="text-xl font-semibold text-[var(--foreground)] mb-5">Questions per Certification</h2>
+        <h2 className="text-lg sm:text-xl font-semibold text-[var(--foreground)] mb-4 sm:mb-5">Questions per Certification</h2>
         {stats.map((cert) => (
-          <div key={cert.id} className="card-dark p-6 rounded-xl">
-            <div className="flex justify-between items-start">
+          <div key={cert.id} className="card-dark p-4 sm:p-6 rounded-xl">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
               <div className="flex-1">
-                <h3 className="text-lg font-semibold text-[var(--foreground)] mb-2">{cert.name}</h3>
+                <h3 className="text-base sm:text-lg font-semibold text-[var(--foreground)] mb-2">{cert.name}</h3>
                 <p className="text-[var(--foreground-muted)] text-sm mb-3">{cert.description}</p>
-                <div className="flex items-center space-x-4">
+                <div className="flex flex-wrap items-center gap-3 sm:gap-4">
                   <span className="text-sm font-medium text-[var(--primary)]">
                     {cert.questionCount} questions
                   </span>
@@ -136,7 +136,7 @@ export default function AdminStatsPage() {
                   </Link>
                 </div>
               </div>
-              <div className="ml-4">
+              <div className="sm:ml-4">
                 <div className="text-right">
                   <div className="text-2xl font-bold text-[var(--primary)]">{cert.questionCount}</div>
                   <div className="text-xs text-[var(--foreground-muted)]">questions</div>

@@ -195,13 +195,13 @@ export default function QuestionsAdminPage() {
 
     return (
         <AdminGuard>
-            <div className="container mx-auto p-8 max-w-6xl min-h-screen">
-            <div className="flex justify-between items-center mb-8">
+            <div className="container mx-auto px-4 py-6 sm:px-6 sm:py-8 max-w-6xl">
+            <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center mb-6 sm:mb-8">
                 <div>
                     <Link href="/admin/certifications" className="text-[var(--primary)] hover:text-[var(--primary-hover)] transition-colors mb-2 inline-block text-sm font-medium">
                         ← Regresar a Examenes
                     </Link>
-                    <h1 className="text-2xl font-bold text-[var(--foreground)]">
+                    <h1 className="text-xl sm:text-2xl font-bold text-[var(--foreground)]">
                         Preguntas para: <span className="text-[var(--primary)]">{certification?.name}</span>
                     </h1>
                 </div>
@@ -209,8 +209,8 @@ export default function QuestionsAdminPage() {
 
             <div className="space-y-6 mb-8">
                 {questions.map((q, index) => (
-                    <div key={q.id} className="card-dark p-5 rounded-xl">
-                        <div className="flex justify-between items-start">
+                    <div key={q.id} className="card-dark p-4 sm:p-5 rounded-xl">
+                        <div className="flex flex-col sm:flex-row gap-4 sm:justify-between sm:items-start">
                             <div className="flex-1">
                                 <h3 className="font-semibold text-[var(--foreground)] mb-3">
                                     {index + 1}. {q.questionText}
@@ -240,7 +240,7 @@ export default function QuestionsAdminPage() {
                                     ))}
                                 </div>
                             </div>
-                            <div className="space-x-2 flex-shrink-0 ml-4">
+                            <div className="flex flex-wrap gap-2 flex-shrink-0 sm:ml-4">
                                 <button 
                                     onClick={() => handleEdit(q)} 
                                     className="bg-[var(--accent-lighter)] hover:bg-amber-100 border border-amber-200 text-amber-700 px-3 py-1.5 rounded-lg transition-colors text-sm"
@@ -262,8 +262,8 @@ export default function QuestionsAdminPage() {
             <div className="border-t border-[var(--border)] my-10"></div>
 
             <div>
-                <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)]">{isEditing ? 'Editar Pregunta' : 'Agregar Nueva Pregunta'}</h2>
-                <form onSubmit={handleSubmit} className="card-dark p-6 rounded-xl">
+                <h2 className="text-lg sm:text-xl font-semibold mb-4 text-[var(--foreground)]">{isEditing ? 'Editar Pregunta' : 'Agregar Nueva Pregunta'}</h2>
+                <form onSubmit={handleSubmit} className="card-dark p-4 sm:p-6 rounded-xl">
                     <div className="mb-5">
                         <label className="block text-sm font-medium mb-2 text-[var(--foreground)]">Texto de la Pregunta</label>
                         <textarea 
@@ -297,7 +297,8 @@ export default function QuestionsAdminPage() {
                         Opciones {isMultiSelect && <span className="text-sm font-normal text-[var(--foreground-muted)]">(Multiple correct answers allowed)</span>}
                     </h3>
                     {options.map((opt, index) => (
-                        <div key={index} className="flex items-center space-x-3 mb-3 p-3 border border-[var(--border)] rounded-lg bg-[var(--background-tertiary)]">
+                        <div key={index} className="mb-3 p-3 border border-[var(--border)] rounded-lg bg-[var(--background-tertiary)]">
+                            <div className="flex items-center gap-3 mb-3 sm:mb-0">
                             <input 
                                 type={isMultiSelect ? "checkbox" : "radio"}
                                 name={isMultiSelect ? undefined : "correct-option"}
@@ -310,23 +311,26 @@ export default function QuestionsAdminPage() {
                                 placeholder="Texto de la opción" 
                                 value={opt.optionText} 
                                 onChange={e => handleOptionChange(index, 'optionText', e.target.value)} 
-                                className="input-neon flex-1" 
+                                className="input-neon flex-1 w-full" 
                                 required 
                             />
+                            </div>
+                            <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
                             <input 
                                 type="text" 
                                 placeholder="Explicación (opcional)" 
                                 value={opt.explanation || ''} 
                                 onChange={e => handleOptionChange(index, 'explanation', e.target.value)} 
-                                className="input-neon flex-1" 
+                                className="input-neon flex-1 w-full" 
                             />
                             <button 
                                 type="button" 
                                 onClick={() => removeOption(index)} 
-                                className="bg-[var(--error-light)] hover:bg-red-100 border border-red-200 text-[var(--error)] py-1.5 px-3 rounded-lg transition-colors"
+                                className="bg-[var(--error-light)] hover:bg-red-100 border border-red-200 text-[var(--error)] py-1.5 px-3 rounded-lg transition-colors w-full sm:w-auto"
                             >
                                 ×
                             </button>
+                            </div>
                         </div>
                     ))}
                     <button 
@@ -336,10 +340,10 @@ export default function QuestionsAdminPage() {
                     >
                         + Agregar opción
                     </button>
-                    <div className="flex justify-between mt-5">
+                    <div className="flex flex-col sm:flex-row gap-3 sm:justify-between mt-5">
                         <button 
                             type="submit" 
-                            className="btn-neon-purple py-2.5 px-6 rounded-lg font-medium"
+                            className="btn-neon-purple py-2.5 px-6 rounded-lg font-medium w-full sm:w-auto"
                         >
                             {isEditing ? 'Actualizar Pregunta' : 'Crear Pregunta'}
                         </button>
@@ -347,7 +351,7 @@ export default function QuestionsAdminPage() {
                             <button 
                                 type="button" 
                                 onClick={resetForm} 
-                                className="bg-[var(--background-tertiary)] hover:bg-[var(--border)] border border-[var(--border)] text-[var(--foreground-muted)] py-2.5 px-6 rounded-lg transition-colors"
+                                className="bg-[var(--background-tertiary)] hover:bg-[var(--border)] border border-[var(--border)] text-[var(--foreground-muted)] py-2.5 px-6 rounded-lg transition-colors w-full sm:w-auto"
                             >
                                 Cancelar Edición
                             </button>

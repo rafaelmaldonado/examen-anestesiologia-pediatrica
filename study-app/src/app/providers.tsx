@@ -18,28 +18,26 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setUser(user);
-      setLoading(false);
 
-      // Manage session cookie
-      if (user) {
-        try {
+      // Manage session cookie — setLoading(false) only after the cookie is set/cleared
+      // so that downstream useEffects that rely on `loading` fire with the cookie ready.
+      try {
+        if (user) {
           const idToken = await user.getIdToken();
           await fetch('/api/auth/session', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ idToken }),
           });
-        } catch (error) {
-            console.error("Failed to set session cookie:", error);
+        } else {
+          await fetch('/api/auth/session', {
+            method: 'DELETE',
+          });
         }
-      } else {
-        try {
-            await fetch('/api/auth/session', {
-                method: 'DELETE',
-            });
-        } catch (error) {
-            console.error("Failed to clear session cookie:", error);
-        }
+      } catch (error) {
+        console.error("Session management error:", error);
+      } finally {
+        setLoading(false);
       }
     });
 

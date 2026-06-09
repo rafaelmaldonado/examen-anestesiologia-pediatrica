@@ -93,20 +93,20 @@ export default function CertificationsAdminPage() {
 
     return (
         <AdminGuard>
-            <div className="container mx-auto p-8 max-w-6xl min-h-screen">
-            <div className="flex justify-between items-center mb-8">
+            <div className="container mx-auto px-4 py-6 sm:px-6 sm:py-8 max-w-6xl">
+            <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center mb-6 sm:mb-8">
                 <div>
-                    <h1 className="text-2xl font-bold text-[var(--foreground)] mb-1">Gestionar Exámenes</h1>
+                    <h1 className="text-xl sm:text-2xl font-bold text-[var(--foreground)] mb-1">Gestionar Exámenes</h1>
                     <p className="text-sm text-[var(--foreground-muted)]">Crea y administra los exámenes</p>
                 </div>
-                <Link href="/admin" className="btn-neon-purple py-2 px-4 rounded-lg text-sm font-medium">
+                <Link href="/admin" className="btn-neon-purple py-2 px-4 rounded-lg text-sm font-medium self-start sm:self-auto">
                     ← Panel Admin
                 </Link>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
                 <div className="lg:col-span-2">
-                    <h2 className="text-xl font-semibold mb-5 text-[var(--foreground)]">Exámenes existentes</h2>
+                    <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-5 text-[var(--foreground)]">Exámenes existentes</h2>
                     {loading && (
                         <div className="text-center py-8">
                             <div className="spinner-neon w-8 h-8 mx-auto mb-4"></div>
@@ -120,9 +120,9 @@ export default function CertificationsAdminPage() {
                     )}
                     <div className="space-y-4">
                         {certifications.map(cert => (
-                            <div key={cert.id} className="card-dark p-5 rounded-xl flex justify-between items-center">
+                            <div key={cert.id} className="card-dark p-4 sm:p-5 rounded-xl flex flex-col sm:flex-row gap-4 sm:justify-between sm:items-center">
                                 <div className="flex-1">
-                                    <div className="flex items-center space-x-2 mb-1">
+                                    <div className="flex flex-wrap items-center gap-2 mb-1">
                                         <h3 className="font-semibold text-[var(--foreground)]">{cert.name}</h3>
                                         {cert.isActive !== false ? (
                                             <span className="bg-[var(--success-light)] text-green-700 text-xs px-2 py-0.5 rounded-full border border-green-200">
@@ -139,7 +139,7 @@ export default function CertificationsAdminPage() {
                                     </div>
                                         <p className="text-sm text-[var(--foreground-muted)]">{cert.description || 'Sin descripción'}</p>
                                 </div>
-                                <div className="flex items-center space-x-2 ml-4">
+                                <div className="flex flex-wrap items-center gap-2 sm:ml-4 w-full sm:w-auto">
                                     <Link 
                                         href={`/admin/questions/${cert.id}`}
                                         className="bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 px-3 py-1.5 rounded-lg transition-colors text-sm"
@@ -165,10 +165,10 @@ export default function CertificationsAdminPage() {
                 </div>
 
                 <div>
-                    <h2 className="text-xl font-semibold mb-5 text-[var(--foreground)]">
+                    <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-5 text-[var(--foreground)]">
                         {isEditing ? 'Editar Examen' : 'Agregar Nuevo Examen'}
                     </h2>
-                    <div className="card-dark p-6 rounded-xl">
+                    <div className="card-dark p-5 sm:p-6 rounded-xl">
                         <form onSubmit={handleSubmit} className="space-y-5">
                             <div>
                                 <label className="block text-sm font-medium mb-2 text-[var(--foreground)]">Nombre</label>
@@ -222,10 +222,10 @@ export default function CertificationsAdminPage() {
                                     </p>
                                 )}
                             </div>
-                            <div className="flex justify-between pt-2">
+                            <div className="flex flex-col sm:flex-row gap-3 sm:justify-between pt-2">
                                 <button 
                                     type="submit" 
-                                    className="btn-neon-purple py-2.5 px-6 rounded-lg font-medium"
+                                    className="btn-neon-purple py-2.5 px-6 rounded-lg font-medium w-full sm:w-auto"
                                 >
                                     {isEditing ? '✓ Actualizar' : '+ Crear'}
                                 </button>
@@ -233,7 +233,7 @@ export default function CertificationsAdminPage() {
                                     <button 
                                         type="button" 
                                         onClick={resetForm} 
-                                        className="bg-[var(--background-tertiary)] hover:bg-[var(--border)] border border-[var(--border)] text-[var(--foreground-muted)] py-2.5 px-6 rounded-lg transition-colors"
+                                        className="bg-[var(--background-tertiary)] hover:bg-[var(--border)] border border-[var(--border)] text-[var(--foreground-muted)] py-2.5 px-6 rounded-lg transition-colors w-full sm:w-auto"
                                     >
                                         Cancelar
                                     </button>

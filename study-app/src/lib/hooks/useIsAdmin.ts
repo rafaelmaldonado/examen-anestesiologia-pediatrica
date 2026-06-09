@@ -15,8 +15,7 @@ export function useIsAdmin() {
           const response = await fetch('/api/auth/verify');
           if (response.ok) {
             const data = await response.json();
-            const adminEmail = 'admin@cert-3d7e6.com'; // Could be moved to env variable
-            setIsAdmin(data.email === adminEmail);
+            setIsAdmin(data?.isAdmin === true);
           } else {
             setIsAdmin(false);
           }

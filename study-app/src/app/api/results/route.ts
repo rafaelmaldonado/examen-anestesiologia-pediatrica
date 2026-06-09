@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAdminDb } from "@/lib/firebase/admin";
-import { getVerifiedUser } from "@/lib/firebase/auth-helper";
+import { getVerifiedUser, isAdminEmail } from "@/lib/firebase/auth-helper";
 import * as admin from 'firebase-admin';
 
 interface UserAnswer {
@@ -22,8 +22,12 @@ export async function POST(request: Request) {
     const { certificationId, answers, timeTaken } = body as {
       certificationId: string,
       answers: UserAnswer[],
-      timeTaken?: number
+      timeTaken?: number,
+      isTestAttempt?: boolean,
     };
+
+    const canMarkAsTest = isAdminEmail(user.email as string | undefined);
+    const finalIsTestAttempt = canMarkAsTest && Boolean(body?.isTestAttempt);
 
     if (!certificationId) {
       return NextResponse.json({ error: "certificationId es requerido" }, { status: 400 });
@@ -34,19 +38,23 @@ export async function POST(request: Request) {
 
     const questionIds = safeAnswers.map(a => a.questionId).filter(Boolean);
 
-    // Prevent duplicate submissions: check if result already exists
-    const existingResult = await getAdminDb()
-      .collection("testResults")
-      .where("userId", "==", userId)
-      .where("certificationId", "==", certificationId)
-      .limit(1)
-      .get();
+    // Prevent duplicate submissions only for real attempts.
+    // Admin test attempts are intentionally allowed multiple times.
+    if (!finalIsTestAttempt) {
+      const existingResult = await getAdminDb()
+        .collection("testResults")
+        .where("userId", "==", userId)
+        .where("certificationId", "==", certificationId)
+        .limit(20)
+        .get();
 
-    if (!existingResult.empty) {
-      return NextResponse.json(
-        { error: "Ya enviaste los resultados de este examen. Solo se permite un intento." },
-        { status: 409 }
-      );
+      const hasRealAttempt = existingResult.docs.some(doc => doc.data().isTestAttempt !== true);
+      if (hasRealAttempt) {
+        return NextResponse.json(
+          { error: "Ya enviaste los resultados de este examen. Solo se permite un intento." },
+          { status: 409 }
+        );
+      }
     }
 
     let correctCount = 0;
@@ -108,6 +116,7 @@ export async function POST(request: Request) {
       userEmail: user.email || null,
       certificationId,
       certificationName,
+      isTestAttempt: finalIsTestAttempt,
       score,
       correctCount,
       totalQuestions,
@@ -123,6 +132,7 @@ export async function POST(request: Request) {
       results: resultsWithExplanations,
       certificationId,
       certificationName,
+      isTestAttempt: finalIsTestAttempt,
       timeTaken,
       finishedAt: finishedAt.toISOString(),
     });

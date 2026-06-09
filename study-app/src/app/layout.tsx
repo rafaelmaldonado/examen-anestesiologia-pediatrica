@@ -28,29 +28,27 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
       >
         <StorageWarning />
         <Providers>
           <Navigation />
-          <div className="flex flex-col min-h-screen">
-            <main className="flex-1">
-              {children}
-            </main>
-            <footer className="border-t border-[var(--border)] bg-[var(--background-secondary)] py-6 px-4 mt-8">
-              <div className="container mx-auto max-w-6xl text-center">
-                <p className="text-sm text-[var(--foreground-muted)]">
-                  Examen Anestesiología Pediátrica
-                </p>
-                <p className="text-sm font-medium text-[var(--foreground)] mt-1">
-                  Dra. Mariana Toledo Ángeles
-                </p>
-                <p className="text-xs text-[var(--foreground-muted)] mt-0.5">
-                  Anestesióloga Pediatra
-                </p>
-              </div>
-            </footer>
-          </div>
+          <main className="flex-1 w-full">
+            {children}
+          </main>
+          <footer className="border-t border-[var(--border)] bg-[var(--background-secondary)] py-6 px-4 mt-8">
+            <div className="container mx-auto max-w-6xl text-center">
+              <p className="text-sm text-[var(--foreground-muted)]">
+                Examen Anestesiología Pediátrica
+              </p>
+              <p className="text-sm font-medium text-[var(--foreground)] mt-1">
+                Dra. Mariana Toledo Ángeles
+              </p>
+              <p className="text-xs text-[var(--foreground-muted)] mt-0.5">
+                Anestesióloga Pediatra
+              </p>
+            </div>
+          </footer>
         </Providers>
       </body>
     </html>

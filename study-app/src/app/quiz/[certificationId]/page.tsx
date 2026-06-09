@@ -22,8 +22,11 @@ export default function QuizPage() {
   const [submitting, setSubmitting] = useState(false);
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
   const [examStarted, setExamStarted] = useState(false);
+  const [isAdminUser, setIsAdminUser] = useState(false);
+  const [isTestAttempt, setIsTestAttempt] = useState(true);
   const examDurationSecondsRef = useRef(30 * 60);
   const startTimeRef = useRef<number | null>(null);
+  const examDeadlineRef = useRef<number | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   // Use a ref (not state) to guard the timer start — prevents re-run side effects
   const timerStartedRef = useRef(false);
@@ -67,6 +70,24 @@ export default function QuizPage() {
     fetchQuestions();
   }, [certificationId]);
 
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      try {
+        const res = await fetch('/api/auth/verify');
+        if (!res.ok) return;
+        const data = await res.json();
+        const admin = data?.isAdmin === true;
+        setIsAdminUser(admin);
+        setIsTestAttempt(admin);
+      } catch {
+        setIsAdminUser(false);
+        setIsTestAttempt(false);
+      }
+    };
+
+    checkAdminStatus();
+  }, []);
+
   const handleSubmit = useCallback(async (autoSubmit = false) => {
     if (submitting) return;
     setSubmitting(true);
@@ -78,9 +99,14 @@ export default function QuizPage() {
       : examDurationSecondsRef.current;
 
     try {
-      const answersForApi = Object.entries(userAnswers).map(([questionId, selectedOption]) => ({
-        questionId,
-        selectedOptionId: Array.isArray(selectedOption) ? selectedOption : [selectedOption],
+      // Include ALL questions: unanswered ones get an empty array and are scored as wrong
+      const answersForApi = questions.map(q => ({
+        questionId: q.id,
+        selectedOptionId: userAnswers[q.id]
+          ? (Array.isArray(userAnswers[q.id])
+              ? (userAnswers[q.id] as string[])
+              : [userAnswers[q.id] as string])
+          : [],
       }));
 
       const res = await fetch('/api/results', {
@@ -90,6 +116,7 @@ export default function QuizPage() {
           certificationId: certificationId as string,
           answers: answersForApi,
           timeTaken,
+          isTestAttempt: isAdminUser && isTestAttempt,
         }),
       });
 
@@ -104,7 +131,7 @@ export default function QuizPage() {
       setError(err.message);
       setSubmitting(false);
     }
-  }, [submitting, userAnswers, certificationId, router]);
+  }, [submitting, userAnswers, questions, certificationId, router]);
 
   // Start timer once — when questions are visible and loading is done.
   // Uses a ref guard so state changes never re-trigger this effect and kill the interval.
@@ -113,19 +140,32 @@ export default function QuizPage() {
       timerStartedRef.current = true;
       setExamStarted(true);
       startTimeRef.current = Date.now();
+      examDeadlineRef.current = startTimeRef.current + (examDurationSecondsRef.current * 1000);
       timerRef.current = setInterval(() => {
-        setTimeLeft(prev => {
-          if (prev === null || prev <= 1) {
-            clearInterval(timerRef.current!);
-            return 0;
-          }
-          return prev - 1;
-        });
+        const deadline = examDeadlineRef.current;
+        if (!deadline) return;
+        const remainingSeconds = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+        setTimeLeft(remainingSeconds);
+        if (remainingSeconds <= 0) {
+          clearInterval(timerRef.current!);
+        }
       }, 1000);
     }
     // Only clean up on unmount
     return () => { clearInterval(timerRef.current!); };
   }, [questions.length, loading]); // examStarted intentionally excluded — use ref instead
+
+  // Recalculate immediately when tab becomes visible again (background tabs throttle intervals)
+  useEffect(() => {
+    const onVisibilityChange = () => {
+      if (document.visibilityState !== 'visible' || !examDeadlineRef.current) return;
+      const remainingSeconds = Math.max(0, Math.ceil((examDeadlineRef.current - Date.now()) / 1000));
+      setTimeLeft(remainingSeconds);
+    };
+
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', onVisibilityChange);
+  }, []);
 
   // Auto-submit when time runs out — only after timer has actually started and counted down
   useEffect(() => {
@@ -159,7 +199,7 @@ export default function QuizPage() {
   }).length;
 
   if (loading) return (
-    <div className="flex justify-center items-center h-screen">
+    <div className="flex justify-center items-center min-h-[60vh] py-10">
       <div className="text-center">
         <div className="spinner-neon w-10 h-10 mx-auto mb-4"></div>
         <div className="text-lg font-medium text-[var(--foreground-muted)]">Cargando examen...</div>
@@ -171,7 +211,7 @@ export default function QuizPage() {
     // Exam already taken (409)
     if (errorCode === 409) {
       return (
-        <div className="flex justify-center items-center h-screen">
+        <div className="flex justify-center items-center min-h-[60vh] py-10 px-4">
           <div className="text-center card-dark p-10 rounded-2xl max-w-md">
             <div className="text-5xl mb-4">✅</div>
             <h2 className="text-xl font-bold text-[var(--foreground)] mb-3">Examen ya completado</h2>
@@ -184,7 +224,7 @@ export default function QuizPage() {
     // Exam inactive (403)
     if (errorCode === 403) {
       return (
-        <div className="flex justify-center items-center h-screen">
+        <div className="flex justify-center items-center min-h-[60vh] py-10 px-4">
           <div className="text-center card-dark p-10 rounded-2xl max-w-md">
             <div className="text-5xl mb-4">🔒</div>
             <h2 className="text-xl font-bold text-[var(--foreground)] mb-3">Examen no disponible</h2>
@@ -198,7 +238,7 @@ export default function QuizPage() {
     }
 
     return (
-      <div className="flex justify-center items-center h-screen">
+      <div className="flex justify-center items-center min-h-[60vh] py-10 px-4">
         <div className="text-center card-dark p-8 rounded-2xl max-w-md">
           <div className="text-lg font-semibold text-[var(--error)] mb-4">{error}</div>
           <button onClick={() => router.push('/')} className="mt-4 text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors">
@@ -214,7 +254,7 @@ export default function QuizPage() {
   const timeExpired = timeLeft === 0 && examStarted;
 
   return (
-    <div className="container mx-auto p-4 sm:p-8 max-w-3xl min-h-screen">
+    <div className="container mx-auto px-4 pt-4 pb-44 sm:px-8 sm:pt-6 sm:pb-48 max-w-3xl">
       {/* Time expired / submitting overlay */}
       {(timeExpired || submitting) && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
@@ -236,14 +276,14 @@ export default function QuizPage() {
         </div>
       )}
       {/* Header with timer */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-[var(--foreground)]">Examen</h1>
           <div className="text-sm text-[var(--foreground-muted)] mt-1">
             Respondidas: {answeredCount} / {questions.length}
           </div>
         </div>
-        <div className={`text-center px-5 py-3 rounded-xl font-mono text-2xl font-bold border-2 ${
+        <div className={`text-center px-4 py-2 rounded-xl font-mono text-xl font-bold border-2 ${
           isTimeLow
             ? 'text-red-600 border-red-300 bg-red-50 animate-pulse'
             : timeLeft === 0 && examStarted
@@ -255,69 +295,88 @@ export default function QuizPage() {
       </div>
 
       {isTimeLow && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm font-medium text-center">
+        <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm font-medium text-center">
           ⚠️ ¡Quedan menos de 5 minutos! El examen se enviará automáticamente al terminar el tiempo.
         </div>
       )}
 
       {/* Progress bar */}
-      <div className="w-full bg-[var(--background-tertiary)] rounded-full h-2 mb-6">
+      <div className="w-full bg-[var(--background-tertiary)] rounded-full h-2 mb-3">
         <div
           className="bg-[var(--primary)] h-2 rounded-full transition-all duration-300"
           style={{ width: `${((currentQuestionIndex + 1) / questions.length) * 100}%` }}
         ></div>
       </div>
 
-      <div className="text-[var(--accent)] font-medium text-sm mb-4 text-center">
+      <div className="text-[var(--accent)] font-medium text-sm mb-3 text-center">
         Pregunta {currentQuestionIndex + 1} de {questions.length}
       </div>
 
-      <div className="card-dark p-6 sm:p-8 rounded-xl mb-8">
-        <h2 className="text-lg sm:text-xl font-semibold mb-4 text-[var(--foreground)] leading-relaxed">
+      {isAdminUser && (
+        <div className="mb-3 p-3 rounded-lg border border-amber-200 bg-amber-50">
+          <label className="flex items-start gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={isTestAttempt}
+              onChange={(e) => setIsTestAttempt(e.target.checked)}
+              className="mt-1 w-4 h-4"
+            />
+            <div>
+              <div className="text-sm font-semibold text-amber-900">Guardar como intento de prueba</div>
+              <div className="text-xs text-amber-700">
+                Este resultado se marcará como PRUEBA y no aparecerá en reportes finales por defecto.
+              </div>
+            </div>
+          </label>
+        </div>
+      )}
+
+      <div className="card-dark p-5 sm:p-6 rounded-xl mb-4">
+        <h2 className="text-base sm:text-lg font-semibold mb-3 text-[var(--foreground)] leading-relaxed">
           {currentQuestion.questionText}
         </h2>
 
         {currentQuestion.isMultiSelect ? (
-          <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+          <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
             <div className="flex items-center text-amber-800">
-              <span className="text-xl mr-3">☑️</span>
+              <span className="text-lg mr-3">☑️</span>
               <div>
-                <div className="font-semibold text-amber-900">Selección múltiple</div>
-                <div className="text-sm text-amber-700">Selecciona TODAS las respuestas correctas.</div>
+                <div className="font-semibold text-amber-900 text-sm">Selección múltiple</div>
+                <div className="text-xs text-amber-700">Selecciona TODAS las respuestas correctas.</div>
               </div>
             </div>
           </div>
         ) : (
-          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
             <div className="flex items-center text-blue-800">
-              <span className="text-xl mr-3">🔘</span>
+              <span className="text-lg mr-3">🔘</span>
               <div>
-                <div className="font-semibold text-blue-900">Selección única</div>
-                <div className="text-sm text-blue-700">Selecciona la MEJOR respuesta.</div>
+                <div className="font-semibold text-blue-900 text-sm">Selección única</div>
+                <div className="text-xs text-blue-700">Selecciona la MEJOR respuesta.</div>
               </div>
             </div>
           </div>
         )}
 
-        <div className="space-y-4">
+        <div className="space-y-3">
           {currentQuestion.options.map(opt => {
             const isSelected = currentQuestion.isMultiSelect
               ? (userAnswers[currentQuestion.id] as string[] || []).includes(opt.id)
               : userAnswers[currentQuestion.id] === opt.id;
             return (
               <div key={opt.id}>
-                <label className="flex items-start p-4 sm:p-5 rounded-xl border-2 border-[var(--border)] cursor-pointer transition-all hover:border-[var(--primary)] hover:bg-[var(--primary-lighter)] has-[:checked]:border-[var(--primary)] has-[:checked]:bg-[var(--primary-lighter)] group">
-                  <div className="flex-shrink-0 mt-1">
+                <label className="flex items-start p-3 sm:p-4 rounded-xl border-2 border-[var(--border)] cursor-pointer transition-all hover:border-[var(--primary)] hover:bg-[var(--primary-lighter)] has-[:checked]:border-[var(--primary)] has-[:checked]:bg-[var(--primary-lighter)] group">
+                  <div className="flex-shrink-0 mt-0.5">
                     <input
                       type={currentQuestion.isMultiSelect ? 'checkbox' : 'radio'}
                       name={`question-${currentQuestion.id}`}
                       value={opt.id}
                       checked={isSelected}
                       onChange={() => handleOptionSelect(currentQuestion.id, opt.id, currentQuestion.isMultiSelect)}
-                      className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--primary)] bg-transparent border-2 border-[var(--border-hover)] focus:ring-[var(--primary)] focus:ring-2 focus:ring-offset-0"
+                      className="w-4 h-4 text-[var(--primary)] bg-transparent border-2 border-[var(--border-hover)] focus:ring-[var(--primary)] focus:ring-2 focus:ring-offset-0"
                     />
                   </div>
-                  <span className="ml-3 sm:ml-4 text-base sm:text-lg text-[var(--foreground)] group-has-[:checked]:text-[var(--primary)] transition-colors leading-relaxed">
+                  <span className="ml-3 text-sm sm:text-base text-[var(--foreground)] group-has-[:checked]:text-[var(--primary)] transition-colors leading-relaxed">
                     {opt.optionText}
                   </span>
                 </label>
@@ -327,62 +386,67 @@ export default function QuizPage() {
         </div>
       </div>
 
-      <div className="flex justify-between items-center">
-        <button
-          onClick={() => setCurrentQuestionIndex(i => Math.max(0, i - 1))}
-          disabled={currentQuestionIndex === 0}
-          className="bg-[var(--background-tertiary)] hover:bg-[var(--border)] text-[var(--foreground)] font-medium py-3 px-6 sm:px-8 rounded-xl disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-        >
-          ← Anterior
-        </button>
-        {currentQuestionIndex < questions.length - 1 ? (
-          <button
-            onClick={() => setCurrentQuestionIndex(i => Math.min(questions.length - 1, i + 1))}
-            className="btn-neon-purple font-medium py-3 px-6 sm:px-8 rounded-xl"
-          >
-            Siguiente →
-          </button>
-        ) : (
-          <button
-            onClick={() => handleSubmit(false)}
-            disabled={submitting || !isExamComplete()}
-            className="btn-neon-orange font-medium py-3 px-6 sm:px-8 rounded-xl disabled:opacity-30 disabled:cursor-not-allowed"
-          >
-            {submitting ? (
-              <div className="flex items-center">
-                <div className="spinner-neon w-5 h-5 mr-3"></div>
-                Enviando...
-              </div>
-            ) : 'Finalizar Examen'}
-          </button>
-        )}
-      </div>
-
-      {/* Question navigator */}
-      <div className="mt-8 card-dark p-4 rounded-xl">
-        <p className="text-sm text-[var(--foreground-muted)] mb-3 font-medium">Navegación de preguntas:</p>
-        <div className="flex flex-wrap gap-2">
-          {questions.map((q, idx) => {
-            const answer = userAnswers[q.id];
-            const answered = q.isMultiSelect
-              ? Array.isArray(answer) && answer.length > 0
-              : typeof answer === 'string' && answer.length > 0;
-            return (
+      {/* Sticky bottom: navigation buttons + question navigator */}
+      <div className="sticky bottom-0 bg-[var(--background)] border-t border-[var(--border)] -mx-4 sm:-mx-8 px-4 sm:px-8 pt-3 pb-4">
+        <div className="max-w-3xl mx-auto">
+          <div className="flex justify-between items-center mb-3">
+            <button
+              onClick={() => setCurrentQuestionIndex(i => Math.max(0, i - 1))}
+              disabled={currentQuestionIndex === 0}
+              className="bg-[var(--background-tertiary)] hover:bg-[var(--border)] text-[var(--foreground)] font-medium py-2.5 px-5 sm:px-7 rounded-xl disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-sm"
+            >
+              ← Anterior
+            </button>
+            {currentQuestionIndex < questions.length - 1 ? (
               <button
-                key={q.id}
-                onClick={() => setCurrentQuestionIndex(idx)}
-                className={`w-9 h-9 rounded-lg text-sm font-semibold transition-colors ${
-                  idx === currentQuestionIndex
-                    ? 'bg-[var(--primary)] text-white'
-                    : answered
-                    ? 'bg-[var(--success-light)] text-green-700 border border-green-300'
-                    : 'bg-[var(--background-tertiary)] text-[var(--foreground-muted)]'
-                }`}
+                onClick={() => setCurrentQuestionIndex(i => Math.min(questions.length - 1, i + 1))}
+                className="btn-neon-purple font-medium py-2.5 px-5 sm:px-7 rounded-xl text-sm"
               >
-                {idx + 1}
+                Siguiente →
               </button>
-            );
-          })}
+            ) : (
+              <button
+                onClick={() => handleSubmit(false)}
+                disabled={submitting || !isExamComplete()}
+                className="btn-neon-orange font-medium py-2.5 px-5 sm:px-7 rounded-xl disabled:opacity-30 disabled:cursor-not-allowed text-sm"
+              >
+                {submitting ? (
+                  <div className="flex items-center">
+                    <div className="spinner-neon w-4 h-4 mr-2"></div>
+                    Enviando...
+                  </div>
+                ) : 'Finalizar Examen'}
+              </button>
+            )}
+          </div>
+
+          {/* Question navigator */}
+          <div className="card-dark p-3 rounded-xl">
+            <p className="text-xs text-[var(--foreground-muted)] mb-2 font-medium">Navegación de preguntas:</p>
+            <div className="flex flex-wrap gap-1.5">
+              {questions.map((q, idx) => {
+                const answer = userAnswers[q.id];
+                const answered = q.isMultiSelect
+                  ? Array.isArray(answer) && answer.length > 0
+                  : typeof answer === 'string' && answer.length > 0;
+                return (
+                  <button
+                    key={q.id}
+                    onClick={() => setCurrentQuestionIndex(idx)}
+                    className={`w-8 h-8 rounded-lg text-xs font-semibold transition-colors ${
+                      idx === currentQuestionIndex
+                        ? 'bg-[var(--primary)] text-white'
+                        : answered
+                        ? 'bg-[var(--success-light)] text-green-700 border border-green-300'
+                        : 'bg-[var(--background-tertiary)] text-[var(--foreground-muted)]'
+                    }`}
+                  >
+                    {idx + 1}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </div>
     </div>

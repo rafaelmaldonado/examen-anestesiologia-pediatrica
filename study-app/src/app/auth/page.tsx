@@ -1,21 +1,20 @@
 'use client';
 export const dynamic = 'force-dynamic';
 
-import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { useAuth } from '@/app/providers';
 import SocialAuth from '@/components/SocialAuth';
 
 export default function AuthPage() {
-  const router = useRouter();
   const { user, loading } = useAuth();
 
-  // If already logged in, redirect to home
+  // If already logged in, redirect to home using a hard redirect so the
+  // session cookie is sent with the new request and the middleware allows through.
   useEffect(() => {
     if (!loading && user) {
-      router.replace('/');
+      window.location.href = '/';
     }
-  }, [user, loading, router]);
+  }, [user, loading]);
 
   const handleAuthSuccess = () => {
     window.location.href = '/';

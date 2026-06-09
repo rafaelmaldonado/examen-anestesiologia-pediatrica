@@ -16,6 +16,7 @@ interface StudentResult {
   correctCount: number | null;
   totalQuestions: number | null;
   timeTaken: number | null;
+  isTestAttempt: boolean;
   finishedAt: string | null;
   createdAt: string | null;
 }
@@ -32,13 +33,19 @@ export default function AdminStudentsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filterMateria, setFilterMateria] = useState('');
+  const [includeTests, setIncludeTests] = useState(false);
+  const [cleaningTests, setCleaningTests] = useState(false);
   const [sortField, setSortField] = useState<keyof StudentResult>('finishedAt');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
 
   useEffect(() => {
     const fetchResults = async () => {
       try {
-        const res = await fetch('/api/admin/students');
+        const params = new URLSearchParams();
+        if (includeTests) params.set('includeTests', '1');
+        if (filterMateria) params.set('certificationId', filterMateria);
+        const query = params.toString();
+        const res = await fetch(`/api/admin/students${query ? `?${query}` : ''}`);
         if (!res.ok) throw new Error('No se pudieron cargar los resultados');
         const data = await res.json();
         setResults(data);
@@ -49,13 +56,13 @@ export default function AdminStudentsPage() {
       }
     };
     fetchResults();
-  }, []);
+  }, [includeTests, filterMateria]);
 
-  const materias = Array.from(new Set(results.map(r => r.certificationName))).sort();
+  const materias = Array.from(new Map(results.map(r => [r.certificationId, r.certificationName])).entries())
+    .map(([id, name]) => ({ id, name }))
+    .sort((a, b) => a.name.localeCompare(b.name));
 
-  const filtered = results.filter(r =>
-    filterMateria === '' || r.certificationName === filterMateria
-  );
+  const filtered = results;
 
   const sorted = [...filtered].sort((a, b) => {
     const va = a[sortField] ?? '';
@@ -79,36 +86,88 @@ export default function AdminStudentsPage() {
     return sortDir === 'asc' ? ' ↑' : ' ↓';
   };
 
+  const handleCleanTestAttempts = async () => {
+    const confirmation = window.confirm(
+      `Se eliminarán los intentos marcados como PRUEBA${filterMateria ? ' del examen filtrado' : ''}. ¿Deseas continuar?`
+    );
+    if (!confirmation) return;
+
+    setCleaningTests(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/admin/students', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ certificationId: filterMateria || undefined }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'No se pudieron eliminar los intentos de prueba');
+      }
+
+      const params = new URLSearchParams();
+      if (includeTests) params.set('includeTests', '1');
+      if (filterMateria) params.set('certificationId', filterMateria);
+      const query = params.toString();
+      const refresh = await fetch(`/api/admin/students${query ? `?${query}` : ''}`);
+      if (refresh.ok) {
+        setResults(await refresh.json());
+      }
+    } catch (err: any) {
+      setError(err.message || 'Error al limpiar intentos de prueba');
+    } finally {
+      setCleaningTests(false);
+    }
+  };
+
   return (
     <AdminGuard>
-      <div className="container mx-auto p-6 sm:p-8 min-h-screen">
-        <div className="flex items-center justify-between mb-8">
+      <div className="container mx-auto px-4 py-6 sm:px-6 sm:py-8">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-[var(--foreground)]">Calificaciones de Estudiantes</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-[var(--foreground)]">Calificaciones de Estudiantes</h1>
             <p className="text-[var(--foreground-muted)] text-sm mt-1">
               {results.length} resultado{results.length !== 1 ? 's' : ''} en total
             </p>
           </div>
           <Link
             href="/admin"
-            className="text-sm text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors"
+            className="text-sm text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors self-start sm:self-auto"
           >
             ← Panel Admin
           </Link>
         </div>
 
-        {/* Filter */}
-        <div className="mb-6">
+        {/* Filters */}
+        <div className="mb-6 flex flex-col sm:flex-row gap-3 sm:items-center">
           <select
             value={filterMateria}
             onChange={e => setFilterMateria(e.target.value)}
-            className="bg-[var(--background-secondary)] border border-[var(--border)] text-[var(--foreground)] rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-[var(--primary)]"
+            className="bg-[var(--background-secondary)] border border-[var(--border)] text-[var(--foreground)] rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-[var(--primary)] w-full sm:w-auto"
           >
             <option value="">Todos los exámenes</option>
             {materias.map(m => (
-              <option key={m} value={m}>{m}</option>
+              <option key={m.id} value={m.id}>{m.name}</option>
             ))}
           </select>
+
+          <label className="inline-flex items-center gap-2 text-sm text-[var(--foreground)]">
+            <input
+              type="checkbox"
+              checked={includeTests}
+              onChange={(e) => setIncludeTests(e.target.checked)}
+              className="w-4 h-4"
+            />
+            Incluir intentos de prueba
+          </label>
+
+          <button
+            onClick={handleCleanTestAttempts}
+            disabled={cleaningTests}
+            className="bg-[var(--error-light)] hover:bg-red-100 border border-red-200 text-[var(--error)] px-3 py-2 rounded-lg transition-colors text-sm disabled:opacity-60"
+          >
+            {cleaningTests ? 'Limpiando...' : 'Eliminar intentos de prueba'}
+          </button>
         </div>
 
         {loading && (
@@ -158,6 +217,9 @@ export default function AdminStudentsPage() {
                       Calificación{sortIcon('score')}
                     </th>
                     <th className="text-center px-4 py-3 font-semibold text-[var(--foreground-muted)] whitespace-nowrap">
+                      Tipo
+                    </th>
+                    <th className="text-center px-4 py-3 font-semibold text-[var(--foreground-muted)] whitespace-nowrap">
                       Aciertos
                     </th>
                     <th
@@ -201,6 +263,17 @@ export default function AdminStudentsPage() {
                         }`}>
                           {result.score}%
                         </span>
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        {result.isTestAttempt ? (
+                          <span className="inline-block text-xs font-semibold px-2 py-1 rounded border border-amber-300 bg-amber-50 text-amber-800">
+                            PRUEBA
+                          </span>
+                        ) : (
+                          <span className="inline-block text-xs font-semibold px-2 py-1 rounded border border-green-300 bg-[var(--success-light)] text-green-800">
+                            REAL
+                          </span>
+                        )}
                       </td>
                       <td className="px-4 py-3 text-center text-[var(--foreground-muted)] text-sm">
                         {result.correctCount !== null && result.totalQuestions !== null

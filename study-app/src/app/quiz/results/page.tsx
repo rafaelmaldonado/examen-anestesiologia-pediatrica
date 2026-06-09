@@ -94,7 +94,7 @@ export default function ResultsPage() {
     }
 
     return (
-        <div className="container mx-auto p-4 sm:p-8 max-w-4xl min-h-screen">
+        <div className="container mx-auto p-4 sm:p-8 max-w-4xl">
             <div className="text-center mb-8">
                 <h1 className="text-2xl sm:text-3xl font-bold mb-2 text-[var(--foreground)]">Resultados del Examen</h1>
                 <p className="text-[var(--foreground-muted)]">Así fue tu desempeño en el examen</p>
