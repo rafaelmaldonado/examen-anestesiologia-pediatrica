@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAdminDb } from "@/lib/firebase/admin";
 import { getVerifiedUser } from "@/lib/firebase/auth-helper";
+import { getAvailability, formatCdmx } from "@/lib/schedule";
 
 export async function GET(request: Request) {
   // Authentication required
@@ -27,10 +28,28 @@ export async function GET(request: Request) {
     }
     const certData = certDoc.data()!;
 
-    // Check if exam is active
+    // Legacy hard switch: if explicitly deactivated, it's closed regardless of schedule.
     if (certData.isActive === false) {
       return NextResponse.json(
         { error: "Este examen no está disponible en este momento." },
+        { status: 403 }
+      );
+    }
+
+    // Scheduled availability window (hora de CDMX).
+    const availability = getAvailability(
+      { availableFrom: certData.availableFrom ?? null, availableUntil: certData.availableUntil ?? null },
+      Date.now()
+    );
+    if (availability === 'upcoming') {
+      return NextResponse.json(
+        { error: `Este examen estará disponible a partir del ${formatCdmx(certData.availableFrom)} (hora de México).` },
+        { status: 403 }
+      );
+    }
+    if (availability === 'closed') {
+      return NextResponse.json(
+        { error: `Este examen cerró el ${formatCdmx(certData.availableUntil)} (hora de México).` },
         { status: 403 }
       );
     }

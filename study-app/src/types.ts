@@ -2,8 +2,10 @@ export interface Certification {
   id: string;
   name: string;
   description: string | null;
-  isActive?: boolean;             // Si el examen está activo y disponible para estudiantes
+  isActive?: boolean;             // Legacy: si está en false, el examen se considera cerrado
   examDurationMinutes?: number;   // Duración en minutos (default 30)
+  availableFrom?: number | null;  // Epoch ms (UTC). Apertura programada en hora de CDMX. null = sin apertura
+  availableUntil?: number | null; // Epoch ms (UTC). Cierre programado en hora de CDMX. null = sin cierre
 }
 
 /**

@@ -5,11 +5,13 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useAuth } from './providers';
 import type { Certification } from '@/types';
+import { getAvailability, formatCdmx } from '@/lib/schedule';
 
 export default function HomePage() {
   const [certifications, setCertifications] = useState<Certification[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [now, setNow] = useState(() => Date.now());
   const { user } = useAuth();
 
   useEffect(() => {
@@ -30,6 +32,9 @@ export default function HomePage() {
     };
 
     fetchData();
+    // Refresca el estado de disponibilidad cada minuto.
+    const interval = setInterval(() => setNow(Date.now()), 60_000);
+    return () => clearInterval(interval);
   }, []);
 
   if (loading) {
@@ -62,15 +67,28 @@ export default function HomePage() {
       {!error && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {certifications.map((cert) => {
-            const isActive = cert.isActive !== false;
+            const status = cert.isActive === false
+              ? 'inactive'
+              : getAvailability({ availableFrom: cert.availableFrom, availableUntil: cert.availableUntil }, now);
+            const isOpen = status === 'open';
             return (
-              <div key={cert.id} className={`card-dark p-6 sm:p-8 rounded-xl h-full transition-all duration-200 group ${!isActive ? 'opacity-60' : ''}`}>
+              <div key={cert.id} className={`card-dark p-6 sm:p-8 rounded-xl h-full transition-all duration-200 group ${!isOpen ? 'opacity-60' : ''}`}>
                 <div>
                   <div className="flex items-center gap-2 mb-3">
                     <h2 className="text-xl font-semibold tracking-tight text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors duration-200">
                       {cert.name}
                     </h2>
-                    {!isActive && (
+                    {status === 'upcoming' && (
+                      <span className="inline-block bg-amber-50 text-amber-700 text-xs font-medium px-2 py-0.5 rounded-full border border-amber-200 whitespace-nowrap">
+                        🕒 Próximamente
+                      </span>
+                    )}
+                    {status === 'closed' && (
+                      <span className="inline-block bg-gray-100 text-gray-500 text-xs font-medium px-2 py-0.5 rounded-full border border-gray-300 whitespace-nowrap">
+                        🔒 Cerrado
+                      </span>
+                    )}
+                    {status === 'inactive' && (
                       <span className="inline-block bg-gray-100 text-gray-500 text-xs font-medium px-2 py-0.5 rounded-full border border-gray-300 whitespace-nowrap">
                         🔒 Inactivo
                       </span>
@@ -80,8 +98,24 @@ export default function HomePage() {
                     {cert.description || ''}
                   </p>
 
+                  {status === 'upcoming' && cert.availableFrom != null && (
+                    <p className="text-xs text-amber-700 mb-3">
+                      Disponible a partir del {formatCdmx(cert.availableFrom)} (hora de México).
+                    </p>
+                  )}
+                  {status === 'closed' && cert.availableUntil != null && (
+                    <p className="text-xs text-gray-500 mb-3">
+                      Cerró el {formatCdmx(cert.availableUntil)} (hora de México).
+                    </p>
+                  )}
+                  {isOpen && cert.availableUntil != null && (
+                    <p className="text-xs text-[var(--foreground-muted)] mb-3">
+                      Cierra el {formatCdmx(cert.availableUntil)} (hora de México).
+                    </p>
+                  )}
+
                   <div className="flex items-center justify-between">
-                    {isActive ? (
+                    {isOpen ? (
                       user ? (
                         <Link href={`/quiz/${cert.id}`} className="text-[var(--primary)] hover:text-[var(--primary-light)] transition-colors duration-200 font-semibold text-sm">
                           Iniciar Examen →

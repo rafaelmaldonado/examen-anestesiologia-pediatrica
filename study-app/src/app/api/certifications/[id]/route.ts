@@ -31,7 +31,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   try {
     const { id } = await params;
     const body = await request.json();
-    const { name, description, isActive, examDurationMinutes } = body;
+    const { name, description, isActive, examDurationMinutes, availableFrom, availableUntil } = body;
 
     if (!name) {
       return NextResponse.json({ error: "Name is required" }, { status: 400 });
@@ -42,9 +42,11 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       description,
       isActive: isActive !== false,
       examDurationMinutes: examDurationMinutes || 30,
+      availableFrom: availableFrom ?? null,
+      availableUntil: availableUntil ?? null,
     });
 
-    return NextResponse.json({ id, name, description, isActive, examDurationMinutes });
+    return NextResponse.json({ id, name, description, isActive, examDurationMinutes, availableFrom, availableUntil });
   } catch (error) {
     const { id } = await params;
     console.error(`Error updating certification ${id}:`, error);

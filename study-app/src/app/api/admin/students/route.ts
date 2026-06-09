@@ -75,21 +75,31 @@ export async function DELETE(request: NextRequest) {
     const body = await request.json().catch(() => ({}));
     const certificationId = (body?.certificationId as string | undefined) || '';
 
+    // Use a single-field query (no composite index needed) and filter test
+    // attempts in memory. This matches the GET logic, which treats any row
+    // where isTestAttempt !== false as a test attempt — including legacy rows
+    // that predate the field. A composite where() would silently fail without
+    // an index and skip those legacy rows.
     const query = certificationId
-      ? getAdminDb().collection('testResults').where('certificationId', '==', certificationId).where('isTestAttempt', '==', true).limit(500)
-      : getAdminDb().collection('testResults').where('isTestAttempt', '==', true).limit(500);
+      ? getAdminDb().collection('testResults').where('certificationId', '==', certificationId).limit(1000)
+      : getAdminDb().collection('testResults').limit(1000);
 
     const snapshot = await query.get();
 
-    if (snapshot.empty) {
+    const testDocs = snapshot.docs.filter(doc => doc.data().isTestAttempt !== false);
+
+    if (testDocs.length === 0) {
       return NextResponse.json({ deleted: 0 });
     }
 
-    const batch = getAdminDb().batch();
-    snapshot.docs.forEach(doc => batch.delete(doc.ref));
-    await batch.commit();
+    // Firestore batches are capped at 500 writes — chunk to be safe.
+    for (let i = 0; i < testDocs.length; i += 500) {
+      const batch = getAdminDb().batch();
+      testDocs.slice(i, i + 500).forEach(doc => batch.delete(doc.ref));
+      await batch.commit();
+    }
 
-    return NextResponse.json({ deleted: snapshot.size });
+    return NextResponse.json({ deleted: testDocs.length });
   } catch (error) {
     console.error('Error deleting test attempts:', error);
     return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });

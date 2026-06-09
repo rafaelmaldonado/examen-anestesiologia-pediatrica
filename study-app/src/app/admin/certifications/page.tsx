@@ -5,21 +5,28 @@ import { useState, useEffect, FormEvent } from 'react';
 import type { Certification } from '@/types';
 import Link from 'next/link';
 import AdminGuard from '@/components/AdminGuard';
+import { cdmxLocalToEpoch, epochToCdmxLocal, formatCdmx, getAvailability } from '@/lib/schedule';
 
 export default function CertificationsAdminPage() {
     const [certifications, setCertifications] = useState<Certification[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [now, setNow] = useState(() => Date.now());
 
     // Form state
     const [isEditing, setIsEditing] = useState<Certification | null>(null);
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
-    const [isActive, setIsActive] = useState(true);
     const [examDurationMinutes, setExamDurationMinutes] = useState<number>(30);
+    // Horario (hora de CDMX). Cadenas "YYYY-MM-DDTHH:mm" para <input type="datetime-local">.
+    const [availableFromLocal, setAvailableFromLocal] = useState('');
+    const [availableUntilLocal, setAvailableUntilLocal] = useState('');
 
     useEffect(() => {
         fetchCertifications();
+        // Refresca el estado de disponibilidad cada minuto.
+        const interval = setInterval(() => setNow(Date.now()), 60_000);
+        return () => clearInterval(interval);
     }, []);
 
     const fetchCertifications = async () => {
@@ -38,6 +45,15 @@ export default function CertificationsAdminPage() {
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
+
+        const availableFrom = cdmxLocalToEpoch(availableFromLocal);
+        const availableUntil = cdmxLocalToEpoch(availableUntilLocal);
+
+        if (availableFrom != null && availableUntil != null && availableUntil <= availableFrom) {
+            setError('La hora de cierre debe ser posterior a la de apertura.');
+            return;
+        }
+
         const url = isEditing ? `/api/certifications/${isEditing.id}` : '/api/certifications';
         const method = isEditing ? 'PUT' : 'POST';
 
@@ -45,11 +61,12 @@ export default function CertificationsAdminPage() {
             const res = await fetch(url, {
                 method,
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    name, 
+                body: JSON.stringify({
+                    name,
                     description,
-                    isActive,
                     examDurationMinutes,
+                    availableFrom,
+                    availableUntil,
                 }),
             });
             if (!res.ok) {
@@ -67,8 +84,9 @@ export default function CertificationsAdminPage() {
         setIsEditing(cert);
         setName(cert.name);
         setDescription(cert.description || '');
-        setIsActive(cert.isActive !== false);
         setExamDurationMinutes(cert.examDurationMinutes ?? 30);
+        setAvailableFromLocal(epochToCdmxLocal(cert.availableFrom));
+        setAvailableUntilLocal(epochToCdmxLocal(cert.availableUntil));
     };
 
     const handleDelete = async (id: string) => {
@@ -87,8 +105,9 @@ export default function CertificationsAdminPage() {
         setIsEditing(null);
         setName('');
         setDescription('');
-        setIsActive(true);
         setExamDurationMinutes(30);
+        setAvailableFromLocal('');
+        setAvailableUntilLocal('');
     };
 
     return (
@@ -119,18 +138,33 @@ export default function CertificationsAdminPage() {
                         </p>
                     )}
                     <div className="space-y-4">
-                        {certifications.map(cert => (
+                        {certifications.map(cert => {
+                            const status = cert.isActive === false
+                                ? 'inactive'
+                                : getAvailability({ availableFrom: cert.availableFrom, availableUntil: cert.availableUntil }, now);
+                            return (
                             <div key={cert.id} className="card-dark p-4 sm:p-5 rounded-xl flex flex-col sm:flex-row gap-4 sm:justify-between sm:items-center">
                                 <div className="flex-1">
                                     <div className="flex flex-wrap items-center gap-2 mb-1">
                                         <h3 className="font-semibold text-[var(--foreground)]">{cert.name}</h3>
-                                        {cert.isActive !== false ? (
-                                            <span className="bg-[var(--success-light)] text-green-700 text-xs px-2 py-0.5 rounded-full border border-green-200">
-                                                ✓ Activo
-                                            </span>
-                                        ) : (
+                                        {status === 'inactive' && (
                                             <span className="bg-[var(--error-light)] text-red-700 text-xs px-2 py-0.5 rounded-full border border-red-200">
                                                 ✗ Inactivo
+                                            </span>
+                                        )}
+                                        {status === 'open' && (
+                                            <span className="bg-[var(--success-light)] text-green-700 text-xs px-2 py-0.5 rounded-full border border-green-200">
+                                                ✓ Disponible
+                                            </span>
+                                        )}
+                                        {status === 'upcoming' && (
+                                            <span className="bg-amber-50 text-amber-700 text-xs px-2 py-0.5 rounded-full border border-amber-200">
+                                                🕒 Próximamente
+                                            </span>
+                                        )}
+                                        {status === 'closed' && (
+                                            <span className="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded-full border border-gray-300">
+                                                🔒 Cerrado
                                             </span>
                                         )}
                                         <span className="bg-blue-50 text-blue-700 text-xs px-2 py-0.5 rounded-full border border-blue-200">
@@ -138,6 +172,14 @@ export default function CertificationsAdminPage() {
                                         </span>
                                     </div>
                                         <p className="text-sm text-[var(--foreground-muted)]">{cert.description || 'Sin descripción'}</p>
+                                        {(cert.availableFrom != null || cert.availableUntil != null) && (
+                                            <p className="text-xs text-[var(--foreground-muted)] mt-1">
+                                                {cert.availableFrom != null && <>Apertura: {formatCdmx(cert.availableFrom)}</>}
+                                                {cert.availableFrom != null && cert.availableUntil != null && ' · '}
+                                                {cert.availableUntil != null && <>Cierre: {formatCdmx(cert.availableUntil)}</>}
+                                                {' (hora de México)'}
+                                            </p>
+                                        )}
                                 </div>
                                 <div className="flex flex-wrap items-center gap-2 sm:ml-4 w-full sm:w-auto">
                                     <Link 
@@ -160,7 +202,8 @@ export default function CertificationsAdminPage() {
                                     </button>
                                 </div>
                             </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </div>
 
@@ -204,23 +247,40 @@ export default function CertificationsAdminPage() {
                                 />
                                 <p className="text-xs text-[var(--foreground-muted)] mt-1">Mínimo 5 min, máximo 180 min</p>
                             </div>
-                            <div>
-                                <label className="flex items-center space-x-3">
-                                    <input
-                                        type="checkbox"
-                                        checked={isActive}
-                                        onChange={e => setIsActive(e.target.checked)}
-                                        className="w-4 h-4 text-[var(--success)] border-[var(--border-hover)] rounded focus:ring-[var(--success)] focus:ring-2"
-                                    />
-                                    <span className="text-sm text-[var(--foreground)]">
-                                        Examen activo (visible para estudiantes)
-                                    </span>
-                                </label>
-                                {!isActive && (
-                                    <p className="text-xs text-[var(--error)] mt-1 ml-7">
-                                        El examen está desactivado. Los estudiantes no podrán acceder aunque tengan el link.
-                                    </p>
-                                )}
+                            <div className="border-t border-[var(--border)] pt-4">
+                                <p className="text-sm font-medium mb-1 text-[var(--foreground)]">Horario de disponibilidad</p>
+                                <p className="text-xs text-[var(--foreground-muted)] mb-3">
+                                    Define cuándo pueden los estudiantes presentar el examen (hora de México). Deja un campo vacío para no limitar ese extremo.
+                                </p>
+                                <div className="space-y-3">
+                                    <div>
+                                        <label className="block text-xs font-medium mb-1 text-[var(--foreground-muted)]">Apertura</label>
+                                        <input
+                                            type="datetime-local"
+                                            value={availableFromLocal}
+                                            onChange={e => setAvailableFromLocal(e.target.value)}
+                                            className="input-neon w-full px-4 py-2.5 rounded-lg"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-medium mb-1 text-[var(--foreground-muted)]">Cierre</label>
+                                        <input
+                                            type="datetime-local"
+                                            value={availableUntilLocal}
+                                            onChange={e => setAvailableUntilLocal(e.target.value)}
+                                            className="input-neon w-full px-4 py-2.5 rounded-lg"
+                                        />
+                                    </div>
+                                    {(availableFromLocal || availableUntilLocal) && (
+                                        <button
+                                            type="button"
+                                            onClick={() => { setAvailableFromLocal(''); setAvailableUntilLocal(''); }}
+                                            className="text-xs text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors underline"
+                                        >
+                                            Limpiar horario (disponible siempre)
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                             <div className="flex flex-col sm:flex-row gap-3 sm:justify-between pt-2">
                                 <button 

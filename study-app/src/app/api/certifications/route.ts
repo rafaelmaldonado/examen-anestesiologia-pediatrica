@@ -23,7 +23,7 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { name, description, isActive, examDurationMinutes } = body;
+    const { name, description, isActive, examDurationMinutes, availableFrom, availableUntil } = body;
 
     if (!name) {
       return NextResponse.json({ error: "Name is required" }, { status: 400 });
@@ -34,6 +34,8 @@ export async function POST(request: Request) {
       description: description || "",
       isActive: isActive !== false,           // default true
       examDurationMinutes: examDurationMinutes || 30,
+      availableFrom: availableFrom ?? null,
+      availableUntil: availableUntil ?? null,
     });
 
     return NextResponse.json({ 
