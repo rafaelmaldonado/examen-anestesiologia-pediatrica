@@ -38,10 +38,11 @@ export default function SocialAuth({ onSuccess }: SocialAuthProps) {
         throw new Error(data.error || `Error del servidor (${sessionRes.status})`);
       }
 
+      // Use window.location for a hard redirect so the middleware sees the new cookie
       if (onSuccess) {
         onSuccess();
       } else {
-        router.push('/');
+        window.location.href = '/';
       }
     } catch (err: any) {
       console.error('Error de autenticación:', err);

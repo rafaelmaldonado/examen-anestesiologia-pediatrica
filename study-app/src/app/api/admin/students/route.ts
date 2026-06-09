@@ -33,23 +33,25 @@ export async function GET() {
       };
     });
 
-    // Resolve emails for userIds that don't have email stored
-    const resultsWithEmails = await Promise.all(
+    // Resolve display names and emails for each result
+    const resultsWithNames = await Promise.all(
       results.map(async result => {
-        if (result.userEmail) return result;
+        let displayName: string | null = null;
         try {
-          if (adminAuth) {
-            const firebaseUser = await getAdminAuth().getUser(result.userId);
-            return { ...result, userEmail: firebaseUser.email || result.userId };
+          const firebaseUser = await getAdminAuth().getUser(result.userId);
+          displayName = firebaseUser.displayName || null;
+          // Also fill email if missing
+          if (!result.userEmail) {
+            result.userEmail = firebaseUser.email || result.userId;
           }
         } catch {
           // user might have been deleted
         }
-        return { ...result, userEmail: result.userId };
+        return { ...result, displayName };
       })
     );
 
-    return NextResponse.json(resultsWithEmails);
+    return NextResponse.json(resultsWithNames);
   } catch (error) {
     console.error('Error fetching student results:', error);
     return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });

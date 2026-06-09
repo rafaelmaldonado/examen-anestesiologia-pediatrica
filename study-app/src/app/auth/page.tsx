@@ -18,7 +18,7 @@ export default function AuthPage() {
   }, [user, loading, router]);
 
   const handleAuthSuccess = () => {
-    router.push('/');
+    window.location.href = '/';
   };
 
   if (loading) return null;

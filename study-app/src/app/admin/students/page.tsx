@@ -9,6 +9,7 @@ interface StudentResult {
   id: string;
   userId: string;
   userEmail: string;
+  displayName: string | null;
   certificationId: string;
   certificationName: string;
   score: number;
@@ -181,8 +182,11 @@ export default function AdminStudentsPage() {
                         idx % 2 === 0 ? '' : 'bg-[var(--background-tertiary)]'
                       }`}
                     >
-                      <td className="px-4 py-3 text-[var(--foreground)] max-w-[200px] truncate">
-                        {result.userEmail}
+                      <td className="px-4 py-3 text-[var(--foreground)] max-w-[220px]">
+                        <div className="truncate font-medium">{result.displayName || result.userEmail}</div>
+                        {result.displayName && (
+                          <div className="truncate text-xs text-[var(--foreground-muted)]">{result.userEmail}</div>
+                        )}
                       </td>
                       <td className="px-4 py-3 text-[var(--foreground-muted)]">
                         {result.certificationName}
