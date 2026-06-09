@@ -102,7 +102,7 @@ export default function ResultsPage() {
             
             <div className="text-center mb-8 card-dark p-8 rounded-xl">
                 <p className="text-lg text-[var(--foreground-muted)] mb-3">Calificación Final:</p>
-                <p className={`text-6xl font-bold mb-2 ${results.score >= 75 ? 'text-[var(--success)]' : 'text-[var(--accent)]'}`}>
+                <p className={`text-6xl font-bold mb-2 ${results.score >= 70 ? 'text-[var(--success)]' : 'text-[var(--accent)]'}`}>
                     {results.score}%
                 </p>
                 {results.correctCount !== undefined && results.totalQuestions !== undefined && (
@@ -112,12 +112,12 @@ export default function ResultsPage() {
                 )}
                 <div className="w-full bg-[var(--background-tertiary)] rounded-full h-2.5 mb-4">
                     <div
-                        className={`h-2.5 rounded-full transition-all duration-1000 ${results.score >= 75 ? 'bg-[var(--success)]' : 'bg-[var(--accent)]'}`}
+                        className={`h-2.5 rounded-full transition-all duration-1000 ${results.score >= 70 ? 'bg-[var(--success)]' : 'bg-[var(--accent)]'}`}
                         style={{width: `${results.score}%`}}
                     ></div>
                 </div>
                 <p className="text-[var(--foreground-muted)]">
-                    {results.score >= 75 ? '🎉 ¡Felicitaciones! Aprobaste el examen.' : '📚 Sigue estudiando y vuelve a intentarlo.'}
+                    {results.score >= 70 ? '🎉 ¡Felicitaciones! Aprobaste el examen.' : '📚 Sigue estudiando y vuelve a intentarlo.'}
                 </p>
                 {results.finishedAt && (
                     <p className="text-xs text-[var(--foreground-muted)] mt-3">

@@ -255,7 +255,7 @@ export default function AdminStudentsPage() {
                       </td>
                       <td className="px-4 py-3 text-center">
                         <span className={`inline-block font-bold text-base px-3 py-1 rounded-lg ${
-                          result.score >= 75
+                          result.score >= 70
                             ? 'bg-[var(--success-light)] text-green-700'
                             : result.score >= 50
                             ? 'bg-amber-50 text-amber-700'
