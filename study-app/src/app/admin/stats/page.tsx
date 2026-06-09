@@ -71,7 +71,7 @@ export default function AdminStatsPage() {
       <div className="flex justify-center items-center h-screen">
         <div className="text-center">
           <div className="spinner-neon w-10 h-10 mx-auto mb-4"></div>
-          <div className="text-lg font-medium text-[var(--foreground-muted)]">Loading statistics...</div>
+          <div className="text-lg font-medium text-[var(--foreground-muted)]">Cargando estadísticas...</div>
         </div>
       </div>
     );
@@ -89,9 +89,9 @@ export default function AdminStatsPage() {
       <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center mb-6 sm:mb-8">
         <div>
           <Link href="/admin" className="text-[var(--primary)] hover:text-[var(--primary-light)] transition-colors mb-2 inline-block text-sm">
-            ← Back to Admin Dashboard
+            ← Volver al Panel Admin
           </Link>
-          <h1 className="text-xl sm:text-2xl font-bold text-[var(--foreground)]">Certification Statistics</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-[var(--foreground)]">Estadísticas de Exámenes</h1>
         </div>
       </div>
 
@@ -100,24 +100,24 @@ export default function AdminStatsPage() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 sm:gap-6 text-center">
           <div>
             <div className="text-3xl font-bold text-[var(--accent)]">{stats.length}</div>
-            <div className="text-sm text-[var(--foreground-muted)]">Total Certifications</div>
+            <div className="text-sm text-[var(--foreground-muted)]">Total de Exámenes</div>
           </div>
           <div>
             <div className="text-3xl font-bold text-[var(--primary)]">{totalQuestions}</div>
-            <div className="text-sm text-[var(--foreground-muted)]">Total Questions</div>
+            <div className="text-sm text-[var(--foreground-muted)]">Total de Preguntas</div>
           </div>
           <div>
             <div className="text-3xl font-bold text-[var(--success)]">
               {stats.length > 0 ? Math.round(totalQuestions / stats.length) : 0}
             </div>
-            <div className="text-sm text-[var(--foreground-muted)]">Avg Questions per Cert</div>
+            <div className="text-sm text-[var(--foreground-muted)]">Promedio de Preguntas por Examen</div>
           </div>
         </div>
       </div>
 
       {/* Detailed Stats */}
       <div className="space-y-4">
-        <h2 className="text-lg sm:text-xl font-semibold text-[var(--foreground)] mb-4 sm:mb-5">Questions per Certification</h2>
+        <h2 className="text-lg sm:text-xl font-semibold text-[var(--foreground)] mb-4 sm:mb-5">Preguntas por Examen</h2>
         {stats.map((cert) => (
           <div key={cert.id} className="card-dark p-4 sm:p-6 rounded-xl">
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
@@ -126,20 +126,20 @@ export default function AdminStatsPage() {
                 <p className="text-[var(--foreground-muted)] text-sm mb-3">{cert.description}</p>
                 <div className="flex flex-wrap items-center gap-3 sm:gap-4">
                   <span className="text-sm font-medium text-[var(--primary)]">
-                    {cert.questionCount} questions
+                    {cert.questionCount} {cert.questionCount === 1 ? 'pregunta' : 'preguntas'}
                   </span>
-                  <Link 
+                  <Link
                     href={`/admin/questions/${cert.id}`}
                     className="text-[var(--primary)] hover:text-[var(--primary-light)] text-sm font-medium transition-colors"
                   >
-                    Manage Questions
+                    Administrar Preguntas
                   </Link>
                 </div>
               </div>
               <div className="sm:ml-4">
                 <div className="text-right">
                   <div className="text-2xl font-bold text-[var(--primary)]">{cert.questionCount}</div>
-                  <div className="text-xs text-[var(--foreground-muted)]">questions</div>
+                  <div className="text-xs text-[var(--foreground-muted)]">preguntas</div>
                 </div>
               </div>
             </div>

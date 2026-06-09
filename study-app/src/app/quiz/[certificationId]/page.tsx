@@ -133,6 +133,65 @@ export default function QuizPage() {
     }
   }, [submitting, userAnswers, questions, certificationId, router]);
 
+  // Keep a stable ref to the latest handleSubmit so the exit-guard effect below
+  // doesn't need to re-subscribe (and tear down listeners) on every answer change.
+  const handleSubmitRef = useRef(handleSubmit);
+  useEffect(() => { handleSubmitRef.current = handleSubmit; }, [handleSubmit]);
+
+  // Warn the user before leaving an in-progress exam.
+  // - Closing/reloading the tab → native browser warning (can't be customized).
+  // - In-app navigation (links, back button) → confirm dialog; on accept we submit
+  //   the exam with the current answers and go to the results page.
+  useEffect(() => {
+    if (!examStarted || submitting) return;
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+
+    const message =
+      'Si sales ahora, tu examen se enviará con las respuestas que llevas hasta el momento. ¿Deseas salir?';
+
+    // Intercept clicks on internal links before Next's router handles them.
+    const handleLinkClick = (e: MouseEvent) => {
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      const anchor = (e.target as Element)?.closest('a');
+      if (!anchor) return;
+      const href = anchor.getAttribute('href');
+      if (!href || href.startsWith('#') || anchor.target === '_blank') return;
+      // Allow navigation that is already heading to the results page.
+      if (href.includes('/quiz/results')) return;
+
+      e.preventDefault();
+      e.stopPropagation();
+      if (window.confirm(message)) {
+        handleSubmitRef.current(false);
+      }
+    };
+
+    // Guard the browser back button by trapping a pushed history entry.
+    history.pushState(null, '', window.location.href);
+    const handlePopState = () => {
+      if (window.confirm(message)) {
+        handleSubmitRef.current(false);
+      } else {
+        // Re-trap: cancel the back navigation by pushing the state again.
+        history.pushState(null, '', window.location.href);
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    document.addEventListener('click', handleLinkClick, true);
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      document.removeEventListener('click', handleLinkClick, true);
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [examStarted, submitting]);
+
   // Start timer once — when questions are visible and loading is done.
   // Uses a ref guard so state changes never re-trigger this effect and kill the interval.
   useEffect(() => {

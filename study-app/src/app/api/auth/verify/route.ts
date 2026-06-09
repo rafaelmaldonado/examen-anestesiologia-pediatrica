@@ -10,7 +10,11 @@ export async function GET(request: NextRequest) {
     }
 
     try {
-        const decodedToken = await getAdminAuth().verifySessionCookie(sessionCookie, true);
+        // checkRevoked=false: this runs on every page navigation (via middleware),
+        // and checkRevoked=true forces a network round-trip to Google each time.
+        // The session cookie is short-lived (5 days) and cleared on logout, so the
+        // local signature check is sufficient here.
+        const decodedToken = await getAdminAuth().verifySessionCookie(sessionCookie, false);
         const tokenEmail = decodedToken.email as string | undefined;
 
         return NextResponse.json({

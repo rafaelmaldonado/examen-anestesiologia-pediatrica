@@ -47,11 +47,6 @@ export default function Navigation() {
     }
   };
 
-  // Don't show navigation on admin pages
-  if (pathname.startsWith('/admin') || pathname.startsWith('/login')) {
-    return null;
-  }
-
   return (
     <nav className="nav-dark sticky top-0 z-40 p-4">
       <div className="container mx-auto flex justify-between items-center">
