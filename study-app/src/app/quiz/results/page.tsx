@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { safeJsonStorage } from '@/lib/storage-helper';
-import RatingForm from '@/components/RatingForm';
 import type { Certification } from '@/types';
 
 // Define a more specific type for the results data
@@ -37,8 +36,6 @@ interface ResultsData {
 export default function ResultsPage() {
     const [results, setResults] = useState<ResultsData | null>(null);
     const [loading, setLoading] = useState(true);
-    const [showRatingForm, setShowRatingForm] = useState(false);
-    const [isSubmittingRating, setIsSubmittingRating] = useState(false);
     const [certification, setCertification] = useState<Certification | null>(null);
     const router = useRouter();
 
@@ -71,39 +68,6 @@ export default function ResultsPage() {
 
         loadData();
     }, []);
-
-    const handleRatingSubmit = async (rating: number, comment: string) => {
-        if (!results?.certificationId) return;
-
-        setIsSubmittingRating(true);
-        try {
-            const response = await fetch('/api/ratings', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    certificationId: results.certificationId,
-                    rating,
-                    comment,
-                }),
-            });
-
-            if (response.ok) {
-                setShowRatingForm(false);
-                // You could show a success message here
-                alert('Thank you for your rating!');
-            } else {
-                const errorData = await response.json();
-                alert(`Error submitting rating: ${errorData.error}`);
-            }
-        } catch (error) {
-            console.error('Error submitting rating:', error);
-            alert('Error submitting rating. Please try again.');
-        } finally {
-            setIsSubmittingRating(false);
-        }
-    };
 
     if (loading) {
         return (
@@ -162,20 +126,6 @@ export default function ResultsPage() {
                             hour: '2-digit', minute: '2-digit'
                         })}
                     </p>
-                )}
-                
-                {certification && results.score >= 75 && (
-                    <div className="mt-6 pt-6 border-t border-[var(--border)]">
-                        <button
-                            onClick={() => setShowRatingForm(true)}
-                            className="btn-neon-orange font-medium py-3 px-6 rounded-lg text-lg hover:scale-[1.02] transition-transform"
-                        >
-                            ⭐ Calificar este examen
-                        </button>
-                        <p className="text-sm text-[var(--foreground-muted)] mt-2">
-                            Ayuda a otros compartiendo tu experiencia
-                        </p>
-                    </div>
                 )}
             </div>
 

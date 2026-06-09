@@ -15,9 +15,6 @@ export default function CertificationsAdminPage() {
     const [isEditing, setIsEditing] = useState<Certification | null>(null);
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
-    const [isAdobe, setIsAdobe] = useState(false);
-    const [price, setPrice] = useState<number | ''>('');
-    const [isFree, setIsFree] = useState(false);
     const [isActive, setIsActive] = useState(true);
     const [examDurationMinutes, setExamDurationMinutes] = useState<number>(30);
 
@@ -45,16 +42,12 @@ export default function CertificationsAdminPage() {
         const method = isEditing ? 'PUT' : 'POST';
 
         try {
-            const priceInCents = isFree ? 0 : (typeof price === 'number' ? price * 100 : 0);
             const res = await fetch(url, {
                 method,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
                     name, 
-                    description, 
-                    isAdobe, 
-                    price: priceInCents,
-                    isFree,
+                    description,
                     isActive,
                     examDurationMinutes,
                 }),
@@ -74,9 +67,6 @@ export default function CertificationsAdminPage() {
         setIsEditing(cert);
         setName(cert.name);
         setDescription(cert.description || '');
-        setIsAdobe(cert.isAdobe);
-        setPrice(cert.price ? cert.price / 100 : '');
-        setIsFree(cert.isFree || false);
         setIsActive(cert.isActive !== false);
         setExamDurationMinutes(cert.examDurationMinutes ?? 30);
     };
@@ -97,9 +87,6 @@ export default function CertificationsAdminPage() {
         setIsEditing(null);
         setName('');
         setDescription('');
-        setIsAdobe(false);
-        setPrice('');
-        setIsFree(false);
         setIsActive(true);
         setExamDurationMinutes(30);
     };

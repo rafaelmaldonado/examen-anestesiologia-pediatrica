@@ -2,9 +2,6 @@ export interface Certification {
   id: string;
   name: string;
   description: string | null;
-  isAdobe: boolean;
-  price?: number;
-  isFree?: boolean;
   isActive?: boolean;             // Si el examen está activo y disponible para estudiantes
   examDurationMinutes?: number;   // Duración en minutos (default 30)
 }
@@ -35,52 +32,19 @@ export interface Question {
 }
 
 /**
- * Rating interface for course ratings
- */
-export interface Rating {
-    id: string;
-    userId: string;
-    userEmail: string;
-    certificationId: string;
-    rating: number; // 1-5 stars
-    comment?: string;
-    createdAt: Date;
-}
-
-/**
- * Rating statistics for a certification
- */
-export interface RatingStats {
-    certificationId: string;
-    averageRating: number;
-    totalRatings: number;
-    ratingBreakdown: {
-        1: number;
-        2: number;
-        3: number;
-        4: number;
-        5: number;
-    };
-}
-
-/**
  * User subscription and payment interfaces
  */
 export interface UserSubscription {
     id: string;
     userId: string;
     certificationId: string;
-    status: 'pending' | 'paid' | 'failed' | 'refunded';
-    amount: number; // Amount in cents
     createdAt: Date;
-    paidAt?: Date;
 }
 
 export interface UserQuizAttempt {
     id: string;
     userId: string;
     certificationId: string;
-    isFreeAttempt: boolean;
     createdAt: Date;
 }
 

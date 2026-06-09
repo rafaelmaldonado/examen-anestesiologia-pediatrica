@@ -6,7 +6,6 @@ import { useAuth } from '@/app/providers';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import AdminGuard from '@/components/AdminGuard';
-import StarRating from '@/components/StarRating';
 
 interface Certification {
   id: string;
@@ -19,8 +18,6 @@ interface CertificationStats {
   name: string;
   description: string;
   questionCount: number;
-  averageRating?: number;
-  totalRatings?: number;
 }
 
 export default function AdminStatsPage() {
@@ -48,26 +45,15 @@ export default function AdminStatsPage() {
 
       // Fetch question counts and ratings for each certification
       const statsPromises = certifications.map(async (cert) => {
-        const [questionsResponse, ratingsResponse] = await Promise.all([
-          fetch(`/api/questions?certificationId=${cert.id}`),
-          fetch(`/api/ratings?certificationId=${cert.id}`)
+        const [questionsResponse] = await Promise.all([
+          fetch(`/api/questions?certificationId=${cert.id}`)
         ]);
         
         const questions = await questionsResponse.json();
-        let averageRating = 0;
-        let totalRatings = 0;
-        
-        if (ratingsResponse.ok) {
-          const ratingsData = await ratingsResponse.json();
-          averageRating = ratingsData.stats?.averageRating || 0;
-          totalRatings = ratingsData.stats?.totalRatings || 0;
-        }
         
         return {
           ...cert,
-          questionCount: questions.length,
-          averageRating,
-          totalRatings
+          questionCount: questions.length
         };
       });
 
@@ -142,19 +128,6 @@ export default function AdminStatsPage() {
                   <span className="text-sm font-medium text-[var(--primary)]">
                     {cert.questionCount} questions
                   </span>
-                  {cert.totalRatings && cert.totalRatings > 0 && (
-                    <div className="flex items-center space-x-2">
-                      <StarRating 
-                        rating={cert.averageRating || 0} 
-                        readonly 
-                        size="sm" 
-                        showText={false}
-                      />
-                      <span className="text-sm text-[var(--foreground-muted)]">
-                        {cert.averageRating?.toFixed(1)} ({cert.totalRatings})
-                      </span>
-                    </div>
-                  )}
                   <Link 
                     href={`/admin/questions/${cert.id}`}
                     className="text-[var(--primary)] hover:text-[var(--primary-light)] text-sm font-medium transition-colors"
@@ -167,14 +140,6 @@ export default function AdminStatsPage() {
                 <div className="text-right">
                   <div className="text-2xl font-bold text-[var(--primary)]">{cert.questionCount}</div>
                   <div className="text-xs text-[var(--foreground-muted)]">questions</div>
-                  {cert.totalRatings && cert.totalRatings > 0 && (
-                    <div className="mt-2">
-                      <div className="text-lg font-bold text-amber-500">
-                        {cert.averageRating?.toFixed(1)}⭐
-                      </div>
-                      <div className="text-xs text-[var(--foreground-muted)]">{cert.totalRatings} ratings</div>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>

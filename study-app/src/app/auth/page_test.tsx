@@ -6,7 +6,7 @@ export default function AuthPage() {
       <div className="w-full max-w-md">
         <div className="backdrop-blur-xl bg-white/10 border-2 border-purple-500/30 rounded-2xl p-8 shadow-[0_0_50px_rgba(168,85,247,0.3)]">
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-glow-purple mb-2">Adobe Certification</h1>
+            <h1 className="text-4xl font-bold text-glow-purple mb-2">Certification</h1>
             <p className="text-gray-300">Access your study materials and take quizzes</p>
           </div>
           

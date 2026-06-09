@@ -1,6 +1,5 @@
 {
   "certificationName": "Multi-Select Demo Questions",
-  "isAdobe": true,
   "description": "Sample questions demonstrating both single-select and multi-select functionality.",
   "questions": [
     {

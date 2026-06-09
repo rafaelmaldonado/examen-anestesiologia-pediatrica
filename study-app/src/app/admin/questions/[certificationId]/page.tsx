@@ -199,10 +199,10 @@ export default function QuestionsAdminPage() {
             <div className="flex justify-between items-center mb-8">
                 <div>
                     <Link href="/admin/certifications" className="text-[var(--primary)] hover:text-[var(--primary-hover)] transition-colors mb-2 inline-block text-sm font-medium">
-                        ← Back to Certifications
+                        ← Regresar a Examenes
                     </Link>
                     <h1 className="text-2xl font-bold text-[var(--foreground)]">
-                        Questions for: <span className="text-[var(--primary)]">{certification?.name}</span>
+                        Preguntas para: <span className="text-[var(--primary)]">{certification?.name}</span>
                     </h1>
                 </div>
             </div>
@@ -261,37 +261,16 @@ export default function QuestionsAdminPage() {
 
             <div className="border-t border-[var(--border)] my-10"></div>
 
-            <div className="mb-10">
-                <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)]">Bulk Import from JSON</h2>
-                <div className="card-dark p-6 rounded-xl">
-                    <p className="text-sm text-[var(--foreground-muted)] mb-4">Upload a JSON file with an array of questions. See README for schema.</p>
-                    <input
-                        type="file"
-                        accept=".json"
-                        onChange={(e) => setJsonFile(e.target.files ? e.target.files[0] : null)}
-                        className="input-neon w-full mb-4 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-[var(--primary-light)] file:text-[var(--primary)] hover:file:bg-[var(--primary)]/10 file:transition-colors"
-                    />
-                    <button
-                        onClick={handleBulkImport}
-                        disabled={!jsonFile || importing}
-                        className="btn-neon-purple disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        {importing ? 'Importing...' : 'Import Questions'}
-                    </button>
-                    {importError && <p className="text-[var(--error)] text-sm mt-2">{importError}</p>}
-                </div>
-            </div>
-
             <div>
-                <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)]">{isEditing ? 'Edit Question' : 'Add New Question'}</h2>
+                <h2 className="text-xl font-semibold mb-4 text-[var(--foreground)]">{isEditing ? 'Editar Pregunta' : 'Agregar Nueva Pregunta'}</h2>
                 <form onSubmit={handleSubmit} className="card-dark p-6 rounded-xl">
                     <div className="mb-5">
-                        <label className="block text-sm font-medium mb-2 text-[var(--foreground)]">Question Text</label>
+                        <label className="block text-sm font-medium mb-2 text-[var(--foreground)]">Texto de la Pregunta</label>
                         <textarea 
                             value={questionText} 
                             onChange={e => setQuestionText(e.target.value)} 
                             className="input-neon w-full h-24 resize-none" 
-                            placeholder="Enter your question here..."
+                            placeholder="Pon tu pregunta aquí..."
                             required 
                         />
                     </div>
@@ -305,17 +284,17 @@ export default function QuestionsAdminPage() {
                                 className="w-4 h-4 text-[var(--primary)] border-[var(--border-hover)] rounded focus:ring-[var(--primary)] focus:ring-2"
                             />
                             <span className="text-sm font-medium text-[var(--foreground)]">
-                                Allow multiple correct answers (Multi-select question)
+                                Permitir multiples respuetas correctas (Pregunta multi selección)
                             </span>
                         </label>
                         {isMultiSelect && (
                             <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-1.5 mt-2 inline-block">
-                                Students will need to select ALL correct answers to get this question right.
+                                Los estudiantes deberán seleccionar todas las respuestas correctas para tener bien la pregunta.
                             </p>
                         )}
                     </div>
                     <h3 className="text-base font-semibold mb-4 text-[var(--foreground)]">
-                        Options {isMultiSelect && <span className="text-sm font-normal text-[var(--foreground-muted)]">(Multiple correct answers allowed)</span>}
+                        Opciones {isMultiSelect && <span className="text-sm font-normal text-[var(--foreground-muted)]">(Multiple correct answers allowed)</span>}
                     </h3>
                     {options.map((opt, index) => (
                         <div key={index} className="flex items-center space-x-3 mb-3 p-3 border border-[var(--border)] rounded-lg bg-[var(--background-tertiary)]">
@@ -328,7 +307,7 @@ export default function QuestionsAdminPage() {
                             />
                             <input 
                                 type="text" 
-                                placeholder="Option text" 
+                                placeholder="Texto de la opción" 
                                 value={opt.optionText} 
                                 onChange={e => handleOptionChange(index, 'optionText', e.target.value)} 
                                 className="input-neon flex-1" 
@@ -336,7 +315,7 @@ export default function QuestionsAdminPage() {
                             />
                             <input 
                                 type="text" 
-                                placeholder="Explanation (optional)" 
+                                placeholder="Explicación (opcional)" 
                                 value={opt.explanation || ''} 
                                 onChange={e => handleOptionChange(index, 'explanation', e.target.value)} 
                                 className="input-neon flex-1" 
@@ -355,14 +334,14 @@ export default function QuestionsAdminPage() {
                         onClick={addOption} 
                         className="text-sm bg-[var(--background-tertiary)] border border-[var(--border)] text-[var(--foreground-muted)] py-2 px-4 rounded-lg hover:bg-[var(--border)] transition-colors mb-6"
                     >
-                        + Add Option
+                        + Agregar opción
                     </button>
                     <div className="flex justify-between mt-5">
                         <button 
                             type="submit" 
                             className="btn-neon-purple py-2.5 px-6 rounded-lg font-medium"
                         >
-                            {isEditing ? 'Update Question' : 'Create Question'}
+                            {isEditing ? 'Actualizar Pregunta' : 'Crear Pregunta'}
                         </button>
                         {isEditing && (
                             <button 
@@ -370,7 +349,7 @@ export default function QuestionsAdminPage() {
                                 onClick={resetForm} 
                                 className="bg-[var(--background-tertiary)] hover:bg-[var(--border)] border border-[var(--border)] text-[var(--foreground-muted)] py-2.5 px-6 rounded-lg transition-colors"
                             >
-                                Cancel Edit
+                                Cancelar Edición
                             </button>
                         )}
                     </div>

@@ -23,7 +23,7 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { name, description, isAdobe, price, isFree, isActive, examDurationMinutes } = body;
+    const { name, description, isActive, examDurationMinutes } = body;
 
     if (!name) {
       return NextResponse.json({ error: "Name is required" }, { status: 400 });
@@ -32,9 +32,6 @@ export async function POST(request: Request) {
     const docRef = await getAdminDb().collection("certifications").add({
       name,
       description: description || "",
-      isAdobe: isAdobe || false,
-      price: price || 0,
-      isFree: isFree !== false,
       isActive: isActive !== false,           // default true
       examDurationMinutes: examDurationMinutes || 30,
     });
@@ -42,10 +39,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ 
       id: docRef.id, 
       name, 
-      description, 
-      isAdobe, 
-      price, 
-      isFree 
+      description
     }, { status: 201 });
   } catch (error) {
     console.error("Error creating certification:", error);

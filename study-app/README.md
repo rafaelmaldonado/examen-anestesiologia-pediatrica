@@ -48,7 +48,6 @@ To bulk-add questions to the database, you can use a JSON file with the followin
 ```json
 {
   "certificationName": "Adobe Certified Professional - Photoshop",
-  "isAdobe": true,
   "description": "Questions for the Adobe Photoshop certification exam.",
   "questions": [
     {
