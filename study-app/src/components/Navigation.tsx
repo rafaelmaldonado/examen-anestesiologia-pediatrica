@@ -57,14 +57,6 @@ export default function Navigation() {
         <div className="flex items-center space-x-6">
           {user ? (
             <>
-              <Link 
-                href="/" 
-                className={`hover:text-[var(--primary)] transition-colors duration-200 text-sm font-medium ${
-                  pathname === '/' ? 'text-[var(--primary)]' : 'text-[var(--foreground-muted)]'
-                }`}
-              >
-                Inicio
-              </Link>
               
               {/* User Menu */}
               <div className="relative user-menu">
