@@ -53,14 +53,14 @@ export default function SocialAuth({ onSuccess }: SocialAuthProps) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-[var(--foreground)] mb-2">Bienvenido</h2>
-        <p className="text-[var(--foreground-muted)]">Inicia sesión para acceder al examen</p>
+        <h2 className="text-xl font-semibold text-[var(--foreground)]">Inicia sesión para continuar</h2>
+        <p className="text-sm text-[var(--foreground-muted)] mt-1">Usa tu cuenta de Google para acceder a tus exámenes.</p>
       </div>
 
       {error && (
-        <div className="bg-[var(--error-light)] border border-red-200 rounded-lg p-3 text-red-800 text-sm">
+        <div className="bg-[var(--error-light)] border border-[var(--error)]/30 rounded-lg p-3 text-[var(--error)] text-sm">
           {error}
         </div>
       )}
@@ -68,7 +68,7 @@ export default function SocialAuth({ onSuccess }: SocialAuthProps) {
       <button
         onClick={handleGoogleAuth}
         disabled={loading}
-        className="w-full bg-white text-gray-700 py-3 px-4 rounded-lg font-medium hover:bg-gray-50 transition-colors border border-[var(--border)] flex items-center justify-center space-x-3 disabled:opacity-50"
+        className="w-full bg-white text-gray-700 py-3 px-4 rounded-lg font-medium hover:bg-gray-50 transition-colors border border-[var(--border)] flex items-center justify-center space-x-3 disabled:opacity-50 shadow-sm"
       >
         <svg className="w-5 h-5" viewBox="0 0 24 24">
           <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>

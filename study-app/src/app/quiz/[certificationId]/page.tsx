@@ -197,6 +197,24 @@ export default function QuizPage() {
     return () => window.removeEventListener('pagehide', handlePageHide);
   }, [examStarted, submitting]);
 
+  // Defeat the back-forward cache (BFCache). On mobile Chrome/Safari, tapping
+  // "back" and then returning restores the frozen page straight from memory:
+  // React effects don't re-run, `/api/quiz` isn't re-fetched, and the already
+  // submitted exam reappears as if still open. `pageshow` with
+  // `event.persisted === true` is the only signal that we were restored from
+  // BFCache — when that happens we force a full reload so the server-side
+  // one-attempt check (409) runs and the "Examen ya completado" screen shows.
+  useEffect(() => {
+    const handlePageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) {
+        window.location.reload();
+      }
+    };
+
+    window.addEventListener('pageshow', handlePageShow);
+    return () => window.removeEventListener('pageshow', handlePageShow);
+  }, []);
+
   // Warn the user before leaving an in-progress exam.
   // - Closing/reloading the tab → native browser warning (can't be customized).
   // - In-app navigation (links, back button) → confirm dialog; on accept we submit
@@ -330,10 +348,15 @@ export default function QuizPage() {
     if (errorCode === 409) {
       return (
         <div className="flex justify-center items-center min-h-[60vh] py-10 px-4">
-          <div className="text-center card-dark p-10 rounded-2xl max-w-md">
-            <div className="text-5xl mb-4">✅</div>
+          <div className="text-center card-dark p-10 rounded-2xl max-w-md animate-fade-in-up">
+            <div className="w-14 h-14 mx-auto mb-5 rounded-full bg-[var(--success-light)] flex items-center justify-center">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--success)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            </div>
             <h2 className="text-xl font-bold text-[var(--foreground)] mb-3">Examen ya completado</h2>
             <p className="text-[var(--foreground-muted)] mb-6">{error}</p>
+            <Link href="/" className="btn-ghost py-2.5 px-6 rounded-lg inline-block text-sm">
+              Volver al inicio
+            </Link>
           </div>
         </div>
       );
@@ -343,12 +366,14 @@ export default function QuizPage() {
     if (errorCode === 403) {
       return (
         <div className="flex justify-center items-center min-h-[60vh] py-10 px-4">
-          <div className="text-center card-dark p-10 rounded-2xl max-w-md">
-            <div className="text-5xl mb-4">🔒</div>
+          <div className="text-center card-dark p-10 rounded-2xl max-w-md animate-fade-in-up">
+            <div className="w-14 h-14 mx-auto mb-5 rounded-full bg-[var(--background-tertiary)] flex items-center justify-center">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--foreground-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </div>
             <h2 className="text-xl font-bold text-[var(--foreground)] mb-3">Examen no disponible</h2>
             <p className="text-[var(--foreground-muted)] mb-6">{error}</p>
-            <Link href="/" className="btn-neon-purple py-3 px-8 rounded-lg inline-block">
-              ← Volver al inicio
+            <Link href="/" className="btn-neon-purple py-2.5 px-6 rounded-lg inline-block text-sm">
+              Volver al inicio
             </Link>
           </div>
         </div>
@@ -357,9 +382,9 @@ export default function QuizPage() {
 
     return (
       <div className="flex justify-center items-center min-h-[60vh] py-10 px-4">
-        <div className="text-center card-dark p-8 rounded-2xl max-w-md">
-          <div className="text-lg font-semibold text-[var(--error)] mb-4">{error}</div>
-          <button onClick={() => router.push('/')} className="mt-4 text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors">
+        <div className="text-center card-dark p-8 rounded-2xl max-w-md animate-fade-in-up">
+          <div className="text-base font-semibold text-[var(--error)] mb-4">{error}</div>
+          <button onClick={() => router.push('/')} className="mt-2 text-sm text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors">
             ← Volver al inicio
           </button>
         </div>
@@ -372,76 +397,81 @@ export default function QuizPage() {
   const timeExpired = timeLeft === 0 && examStarted;
 
   return (
-    <div className="container mx-auto px-4 pt-4 pb-44 sm:px-8 sm:pt-6 sm:pb-48 max-w-3xl">
+    <div className="container mx-auto px-4 pt-5 pb-44 sm:px-8 sm:pt-6 sm:pb-48 max-w-3xl">
       {/* Time expired / submitting overlay */}
       {(timeExpired || submitting) && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
           <div className="card-dark p-8 rounded-2xl text-center max-w-sm mx-4">
             {timeExpired ? (
               <>
-                <div className="text-5xl mb-4">⏰</div>
-                <h2 className="text-xl font-bold text-[var(--foreground)] mb-2">¡Tiempo agotado!</h2>
-                <p className="text-[var(--foreground-muted)] mb-4">Enviando tus respuestas...</p>
+                <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-[var(--error-light)] flex items-center justify-center">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--error)" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+                </div>
+                <h2 className="text-xl font-bold text-[var(--foreground)] mb-2">Tiempo agotado</h2>
+                <p className="text-[var(--foreground-muted)] mb-4">Enviando tus respuestas…</p>
                 <div className="spinner-neon w-8 h-8 mx-auto"></div>
               </>
             ) : (
               <>
                 <div className="spinner-neon w-10 h-10 mx-auto mb-4"></div>
-                <p className="text-[var(--foreground-muted)]">Enviando resultados...</p>
+                <p className="text-[var(--foreground-muted)]">Enviando resultados…</p>
               </>
             )}
           </div>
         </div>
       )}
-      {/* Header with timer */}
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-[var(--foreground)]">Examen</h1>
-          <div className="text-sm text-[var(--foreground-muted)] mt-1">
-            Respondidas: {answeredCount} / {questions.length}
+
+      {/* Header: progreso + timer */}
+      <div className="flex items-center justify-between gap-4 mb-4">
+        <div className="min-w-0">
+          <div className="flex items-baseline gap-2">
+            <span className="text-lg font-bold text-[var(--foreground)]">
+              Pregunta {currentQuestionIndex + 1}
+            </span>
+            <span className="text-sm text-[var(--foreground-muted)]">de {questions.length}</span>
+          </div>
+          <div className="text-xs text-[var(--foreground-muted)] mt-0.5">
+            {answeredCount} respondida{answeredCount === 1 ? '' : 's'}
           </div>
         </div>
-        <div className={`text-center px-4 py-2 rounded-xl font-mono text-xl font-bold border-2 ${
-          isTimeLow
-            ? 'text-red-600 border-red-300 bg-red-50 animate-pulse'
-            : timeLeft === 0 && examStarted
-            ? 'text-red-600 border-red-400 bg-red-50'
+        <div className={`flex items-center gap-2 px-3.5 py-2 rounded-xl font-mono text-lg font-bold border tabular-nums transition-colors ${
+          timeExpired
+            ? 'text-[var(--error)] border-[var(--error)]/40 bg-[var(--error-light)]'
+            : isTimeLow
+            ? 'text-[var(--error)] border-[var(--error)]/30 bg-[var(--error-light)] animate-pulse'
             : 'text-[var(--foreground)] border-[var(--border)] bg-[var(--background-secondary)]'
         }`}>
-          ⏱ {timeLeft === null ? '--:--' : formatTime(timeLeft)}
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+          {timeLeft === null ? '--:--' : formatTime(timeLeft)}
         </div>
       </div>
 
-      {isTimeLow && (
-        <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm font-medium text-center">
-          ⚠️ ¡Quedan menos de 5 minutos! El examen se enviará automáticamente al terminar el tiempo.
-        </div>
-      )}
-
       {/* Progress bar */}
-      <div className="w-full bg-[var(--background-tertiary)] rounded-full h-2 mb-3">
+      <div className="w-full bg-[var(--background-tertiary)] rounded-full h-1.5 mb-5 overflow-hidden">
         <div
-          className="bg-[var(--primary)] h-2 rounded-full transition-all duration-300"
+          className="bg-[var(--primary)] h-full rounded-full transition-all duration-300"
           style={{ width: `${((currentQuestionIndex + 1) / questions.length) * 100}%` }}
         ></div>
       </div>
 
-      <div className="text-[var(--accent)] font-medium text-sm mb-3 text-center">
-        Pregunta {currentQuestionIndex + 1} de {questions.length}
-      </div>
+      {isTimeLow && (
+        <div className="mb-4 p-3 bg-[var(--error-light)] border border-[var(--error)]/30 rounded-lg text-[var(--error)] text-sm font-medium text-center">
+          Quedan menos de 5 minutos. El examen se enviará automáticamente al terminar el tiempo.
+        </div>
+      )}
 
       {isAdminUser && (
-        <div className="mb-3 p-3 rounded-lg border border-amber-200 bg-amber-50">
+        <div className="mb-4 p-3 rounded-lg border border-[var(--warning)]/30 bg-[var(--warning-light)]">
           <label className="flex items-start gap-3 cursor-pointer">
             <input
               type="checkbox"
               checked={isTestAttempt}
               onChange={(e) => setIsTestAttempt(e.target.checked)}
-              className="mt-1 w-4 h-4"
+              className="mt-0.5"
             />
             <div>
-              <div className="text-sm font-semibold text-amber-900">Guardar como intento de prueba</div>
-              <div className="text-xs text-amber-700">
+              <div className="text-sm font-semibold text-[var(--warning)]">Guardar como intento de prueba</div>
+              <div className="text-xs text-[var(--foreground-muted)]">
                 Este resultado se marcará como PRUEBA y no aparecerá en reportes finales por defecto.
               </div>
             </div>
@@ -449,121 +479,124 @@ export default function QuizPage() {
         </div>
       )}
 
-      <div className="card-dark p-5 sm:p-6 rounded-xl mb-4">
-        <h2 className="text-base sm:text-lg font-semibold mb-3 text-[var(--foreground)] leading-relaxed">
+      <div className="card-dark p-5 sm:p-6 rounded-2xl mb-4">
+        {/* Etiqueta de tipo de pregunta — compacta, una sola línea */}
+        <div className="flex items-center gap-2 mb-4">
+          <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full ${
+            currentQuestion.isMultiSelect
+              ? 'bg-[var(--accent-lighter)] text-[var(--accent)]'
+              : 'bg-[var(--primary-lighter)] text-[var(--primary)]'
+          }`}>
+            {currentQuestion.isMultiSelect ? (
+              <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="m8 12 3 3 5-6"/></svg> Selección múltiple</>
+            ) : (
+              <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5" fill="currentColor" stroke="none"/></svg> Selección única</>
+            )}
+          </span>
+          <span className="text-xs text-[var(--foreground-muted)]">
+            {currentQuestion.isMultiSelect ? 'Selecciona todas las correctas' : 'Selecciona la mejor respuesta'}
+          </span>
+        </div>
+
+        <h2 className="text-base sm:text-lg font-semibold mb-5 text-[var(--foreground)] leading-relaxed">
           {currentQuestion.questionText}
         </h2>
 
-        {currentQuestion.isMultiSelect ? (
-          <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-            <div className="flex items-center text-amber-800">
-              <span className="text-lg mr-3">☑️</span>
-              <div>
-                <div className="font-semibold text-amber-900 text-sm">Selección múltiple</div>
-                <div className="text-xs text-amber-700">Selecciona TODAS las respuestas correctas.</div>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <div className="flex items-center text-blue-800">
-              <span className="text-lg mr-3">🔘</span>
-              <div>
-                <div className="font-semibold text-blue-900 text-sm">Selección única</div>
-                <div className="text-xs text-blue-700">Selecciona la MEJOR respuesta.</div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div className="space-y-3">
-          {currentQuestion.options.map(opt => {
+        <div className="space-y-2.5">
+          {currentQuestion.options.map((opt, optIdx) => {
             const isSelected = currentQuestion.isMultiSelect
               ? (userAnswers[currentQuestion.id] as string[] || []).includes(opt.id)
               : userAnswers[currentQuestion.id] === opt.id;
+            const letter = String.fromCharCode(65 + optIdx);
             return (
-              <div key={opt.id}>
-                <label className="flex items-start p-3 sm:p-4 rounded-xl border-2 border-[var(--border)] cursor-pointer transition-all hover:border-[var(--primary)] hover:bg-[var(--primary-lighter)] has-[:checked]:border-[var(--primary)] has-[:checked]:bg-[var(--primary-lighter)] group">
-                  <div className="flex-shrink-0 mt-0.5">
-                    <input
-                      type={currentQuestion.isMultiSelect ? 'checkbox' : 'radio'}
-                      name={`question-${currentQuestion.id}`}
-                      value={opt.id}
-                      checked={isSelected}
-                      onChange={() => handleOptionSelect(currentQuestion.id, opt.id, currentQuestion.isMultiSelect)}
-                      className="w-4 h-4 text-[var(--primary)] bg-transparent border-2 border-[var(--border-hover)] focus:ring-[var(--primary)] focus:ring-2 focus:ring-offset-0"
-                    />
-                  </div>
-                  <span className="ml-3 text-sm sm:text-base text-[var(--foreground)] group-has-[:checked]:text-[var(--primary)] transition-colors leading-relaxed">
-                    {opt.optionText}
-                  </span>
-                </label>
-              </div>
+              <label
+                key={opt.id}
+                className="flex items-center gap-3 p-3.5 sm:p-4 rounded-xl border border-[var(--border)] cursor-pointer transition-all hover:border-[var(--border-hover)] hover:bg-[var(--background-tertiary)] has-[:checked]:border-[var(--primary)] has-[:checked]:bg-[var(--primary-lighter)] group"
+              >
+                <span className={`flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold transition-colors ${
+                  isSelected
+                    ? 'bg-[var(--primary)] text-white'
+                    : 'bg-[var(--background-tertiary)] text-[var(--foreground-muted)] group-hover:bg-[var(--border)]'
+                }`}>
+                  {letter}
+                </span>
+                <input
+                  type={currentQuestion.isMultiSelect ? 'checkbox' : 'radio'}
+                  name={`question-${currentQuestion.id}`}
+                  value={opt.id}
+                  checked={isSelected}
+                  onChange={() => handleOptionSelect(currentQuestion.id, opt.id, currentQuestion.isMultiSelect)}
+                  className="sr-only"
+                />
+                <span className="text-sm sm:text-base text-[var(--foreground)] group-has-[:checked]:text-[var(--primary-dark)] transition-colors leading-relaxed">
+                  {opt.optionText}
+                </span>
+              </label>
             );
           })}
         </div>
       </div>
 
       {/* Sticky bottom: navigation buttons + question navigator */}
-      <div className="sticky bottom-0 bg-[var(--background)] border-t border-[var(--border)] -mx-4 sm:-mx-8 px-4 sm:px-8 pt-3 pb-4">
+      <div className="fixed bottom-0 inset-x-0 bg-[var(--background-secondary)]/95 backdrop-blur-md border-t border-[var(--border)] px-4 sm:px-8 pt-3 pb-4 z-30">
         <div className="max-w-3xl mx-auto">
-          <div className="flex justify-between items-center mb-3">
+          <div className="flex justify-between items-center gap-3 mb-3">
             <button
               onClick={() => setCurrentQuestionIndex(i => Math.max(0, i - 1))}
               disabled={currentQuestionIndex === 0}
-              className="bg-[var(--background-tertiary)] hover:bg-[var(--border)] text-[var(--foreground)] font-medium py-2.5 px-5 sm:px-7 rounded-xl disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-sm"
+              className="btn-ghost py-2.5 px-5 sm:px-6 rounded-xl disabled:opacity-30 disabled:cursor-not-allowed text-sm inline-flex items-center gap-1.5"
             >
-              ← Anterior
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>
+              Anterior
             </button>
             {currentQuestionIndex < questions.length - 1 ? (
               <button
                 onClick={() => setCurrentQuestionIndex(i => Math.min(questions.length - 1, i + 1))}
-                className="btn-neon-purple font-medium py-2.5 px-5 sm:px-7 rounded-xl text-sm"
+                className="btn-neon-purple py-2.5 px-5 sm:px-6 rounded-xl text-sm inline-flex items-center gap-1.5"
               >
-                Siguiente →
+                Siguiente
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
               </button>
             ) : (
               <button
                 onClick={() => handleSubmit(false)}
                 disabled={submitting || !isExamComplete()}
-                className="btn-neon-orange font-medium py-2.5 px-5 sm:px-7 rounded-xl disabled:opacity-30 disabled:cursor-not-allowed text-sm"
+                className="btn-neon-orange py-2.5 px-5 sm:px-6 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed text-sm inline-flex items-center gap-2"
               >
                 {submitting ? (
-                  <div className="flex items-center">
-                    <div className="spinner-neon w-4 h-4 mr-2"></div>
-                    Enviando...
-                  </div>
-                ) : 'Finalizar Examen'}
+                  <>
+                    <div className="spinner-neon w-4 h-4"></div>
+                    Enviando…
+                  </>
+                ) : 'Finalizar examen'}
               </button>
             )}
           </div>
 
           {/* Question navigator */}
-          <div className="card-dark p-3 rounded-xl">
-            <p className="text-xs text-[var(--foreground-muted)] mb-2 font-medium">Navegación de preguntas:</p>
-            <div className="flex flex-wrap gap-1.5">
-              {questions.map((q, idx) => {
-                const answer = userAnswers[q.id];
-                const answered = q.isMultiSelect
-                  ? Array.isArray(answer) && answer.length > 0
-                  : typeof answer === 'string' && answer.length > 0;
-                return (
-                  <button
-                    key={q.id}
-                    onClick={() => setCurrentQuestionIndex(idx)}
-                    className={`w-8 h-8 rounded-lg text-xs font-semibold transition-colors ${
-                      idx === currentQuestionIndex
-                        ? 'bg-[var(--primary)] text-white'
-                        : answered
-                        ? 'bg-[var(--success-light)] text-green-700 border border-green-300'
-                        : 'bg-[var(--background-tertiary)] text-[var(--foreground-muted)]'
-                    }`}
-                  >
-                    {idx + 1}
-                  </button>
-                );
-              })}
-            </div>
+          <div className="flex flex-wrap gap-1.5 justify-center">
+            {questions.map((q, idx) => {
+              const answer = userAnswers[q.id];
+              const answered = q.isMultiSelect
+                ? Array.isArray(answer) && answer.length > 0
+                : typeof answer === 'string' && answer.length > 0;
+              return (
+                <button
+                  key={q.id}
+                  onClick={() => setCurrentQuestionIndex(idx)}
+                  aria-label={`Ir a la pregunta ${idx + 1}${answered ? ' (respondida)' : ''}`}
+                  className={`w-7 h-7 rounded-lg text-xs font-semibold transition-colors ${
+                    idx === currentQuestionIndex
+                      ? 'bg-[var(--primary)] text-white ring-2 ring-[var(--ring)]'
+                      : answered
+                      ? 'bg-[var(--success-light)] text-[var(--success)] border border-[var(--success)]/30'
+                      : 'bg-[var(--background-tertiary)] text-[var(--foreground-muted)] border border-[var(--border)]'
+                  }`}
+                >
+                  {idx + 1}
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>

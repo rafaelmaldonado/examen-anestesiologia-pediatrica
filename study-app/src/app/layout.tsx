@@ -36,16 +36,16 @@ export default function RootLayout({
           <main className="flex-1 w-full">
             {children}
           </main>
-          <footer className="border-t border-[var(--border)] bg-[var(--background-secondary)] py-6 px-4 mt-8">
-            <div className="container mx-auto max-w-6xl text-center">
-              <p className="text-sm text-[var(--foreground-muted)]">
-                Examen Anestesiología Pediátrica
+          <footer className="border-t border-[var(--border)] bg-[var(--background-secondary)] py-8 px-4 mt-12">
+            <div className="container mx-auto max-w-6xl flex flex-col items-center text-center gap-1">
+              <p className="text-sm font-semibold text-[var(--foreground)]">
+                Dra. Mariana Toledo Angeles
               </p>
-              <p className="text-sm font-medium text-[var(--foreground)] mt-1">
-                Dra. Mariana Toledo Ángeles
-              </p>
-              <p className="text-xs text-[var(--foreground-muted)] mt-0.5">
+              <p className="text-xs text-[var(--foreground-muted)]">
                 Anestesióloga Pediatra
+              </p>
+              <p className="text-xs text-[var(--foreground-muted)] mt-2">
+                Examen de Anestesiología Pediátrica · {new Date().getFullYear()}
               </p>
             </div>
           </footer>

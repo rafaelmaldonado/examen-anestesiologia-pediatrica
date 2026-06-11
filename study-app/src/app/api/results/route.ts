@@ -58,9 +58,12 @@ export async function POST(request: Request) {
     }
 
     let correctCount = 0;
-    let resultsWithExplanations: any[] = [];
 
-    // Only fetch/score questions if there are answers
+    // Score on the server only. We intentionally do NOT build or return any
+    // per-question detail (correct options, explanations, the answer key) — that
+    // data must never reach the browser, otherwise students could read it from
+    // the Network tab and share the answers. Only the aggregate score leaves
+    // the server.
     if (questionIds.length > 0) {
       const questionsSnapshot = await getAdminDb()
         .collection(`certifications/${certificationId}/questions`)
@@ -68,9 +71,9 @@ export async function POST(request: Request) {
         .get();
       const correctQuestionsData = questionsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[];
 
-      resultsWithExplanations = safeAnswers.map(userAnswer => {
+      for (const userAnswer of safeAnswers) {
         const question = correctQuestionsData.find(q => q.id === userAnswer.questionId);
-        if (!question) return null;
+        if (!question) continue;
 
         const correctOptions = question.options?.filter((opt: any) => opt.isCorrect) || [];
         const correctOptionIds: string[] = correctOptions.map((opt: any) => opt.id);
@@ -86,17 +89,7 @@ export async function POST(request: Request) {
           isUserCorrect = correctOption && userAnswer.selectedOptionId.includes(correctOption.id);
         }
         if (isUserCorrect) correctCount++;
-
-        return {
-          questionId: userAnswer.questionId,
-          questionText: question.questionText || 'Pregunta no encontrada',
-          selectedOptionId: userAnswer.selectedOptionId,
-          correctOptions,
-          allOptions: question.options || [],
-          isCorrect: isUserCorrect,
-          isMultiSelect: question.isMultiSelect || false,
-        };
-      }).filter(Boolean);
+      }
     }
 
     const totalQuestions = safeAnswers.length;
@@ -125,11 +118,13 @@ export async function POST(request: Request) {
       createdAt: finishedAt,
     });
 
+    // Return ONLY the aggregate score. No per-question detail, no answer key,
+    // no explanations — keeping the correct answers server-side prevents
+    // students from extracting and sharing them.
     return NextResponse.json({
       score,
       correctCount,
       totalQuestions,
-      results: resultsWithExplanations,
       certificationId,
       certificationName,
       isTestAttempt: finalIsTestAttempt,
