@@ -138,6 +138,65 @@ export default function QuizPage() {
   const handleSubmitRef = useRef(handleSubmit);
   useEffect(() => { handleSubmitRef.current = handleSubmit; }, [handleSubmit]);
 
+  // Stable ref to the latest exam payload so the pagehide listener can fire
+  // sendBeacon without re-attaching on every answer change.
+  const examDataRef = useRef({ questions, userAnswers, certificationId, isAdminUser, isTestAttempt });
+  useEffect(() => {
+    examDataRef.current = { questions, userAnswers, certificationId, isAdminUser, isTestAttempt };
+  }, [questions, userAnswers, certificationId, isAdminUser, isTestAttempt]);
+
+  // Auto-submit when the page is being hidden/unloaded (tab close, app switch
+  // with BFCache eviction, navigation away). Mobile browsers ignore
+  // `beforeunload` and don't always fire `popstate` reliably, so without this
+  // mobile users could leave an in-progress exam and re-enter — sendBeacon
+  // submits whatever's answered so the server-side one-attempt rule kicks in
+  // the next time they try to open the exam.
+  useEffect(() => {
+    if (!examStarted || submitting) return;
+
+    const handlePageHide = () => {
+      const { questions, userAnswers, certificationId, isAdminUser, isTestAttempt } = examDataRef.current;
+      if (!questions.length) return;
+
+      const timeTaken = startTimeRef.current
+        ? Math.round((Date.now() - startTimeRef.current) / 1000)
+        : examDurationSecondsRef.current;
+
+      const answersForApi = questions.map(q => ({
+        questionId: q.id,
+        selectedOptionId: userAnswers[q.id]
+          ? (Array.isArray(userAnswers[q.id])
+              ? (userAnswers[q.id] as string[])
+              : [userAnswers[q.id] as string])
+          : [],
+      }));
+
+      const payload = JSON.stringify({
+        certificationId: certificationId as string,
+        answers: answersForApi,
+        timeTaken,
+        isTestAttempt: isAdminUser && isTestAttempt,
+      });
+
+      if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
+        const blob = new Blob([payload], { type: 'application/json' });
+        navigator.sendBeacon('/api/results', blob);
+      } else {
+        // Fallback for the rare browser without sendBeacon — keepalive lets
+        // the request survive the page unload.
+        fetch('/api/results', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: payload,
+          keepalive: true,
+        }).catch(() => {});
+      }
+    };
+
+    window.addEventListener('pagehide', handlePageHide);
+    return () => window.removeEventListener('pagehide', handlePageHide);
+  }, [examStarted, submitting]);
+
   // Warn the user before leaving an in-progress exam.
   // - Closing/reloading the tab → native browser warning (can't be customized).
   // - In-app navigation (links, back button) → confirm dialog; on accept we submit
