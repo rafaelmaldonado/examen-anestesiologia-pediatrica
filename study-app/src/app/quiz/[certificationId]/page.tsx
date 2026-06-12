@@ -160,6 +160,11 @@ export default function QuizPage() {
       const { questions, userAnswers, certificationId, isAdminUser, isTestAttempt } = examDataRef.current;
       if (!questions.length) return;
 
+      // Mark that we've submitted on leave so that when the page becomes
+      // visible again (return to the exam), we force a reload to surface the
+      // server-side "already completed" (409) screen.
+      submittedOnHideRef.current = true;
+
       const timeTaken = startTimeRef.current
         ? Math.round((Date.now() - startTimeRef.current) / 1000)
         : examDurationSecondsRef.current;
@@ -199,13 +204,23 @@ export default function QuizPage() {
     return () => window.removeEventListener('pagehide', handlePageHide);
   }, [examStarted, submitting]);
 
+  // True once `pagehide` has submitted the in-progress exam on leave.
+  const submittedOnHideRef = useRef(false);
+
   // Defeat the back-forward cache (BFCache). On mobile Chrome/Safari, tapping
   // "back" and then returning restores the frozen page straight from memory:
   // React effects don't re-run, `/api/quiz` isn't re-fetched, and the already
-  // submitted exam reappears as if still open. `pageshow` with
-  // `event.persisted === true` is the only signal that we were restored from
-  // BFCache — when that happens we force a full reload so the server-side
-  // one-attempt check (409) runs and the "Examen ya completado" screen shows.
+  // submitted exam reappears as if still open.
+  //
+  // Safari fires `pageshow` with `event.persisted === true` on a BFCache
+  // restore, so reloading there works. Chrome on iOS, however, often restores
+  // the page WITHOUT that signal, so `pageshow` alone never fires the reload.
+  // To cover both, we ALSO listen for `visibilitychange`: when the page becomes
+  // visible again after `pagehide` already submitted the exam, force a full
+  // reload so the server-side one-attempt check (409) runs and the
+  // "Examen ya completado" screen shows. The `submittedOnHideRef` guard means
+  // we only reload when the exam was actually submitted on leave — a brief app
+  // switch that doesn't trigger `pagehide` won't blow away unsaved answers.
   useEffect(() => {
     const handlePageShow = (e: PageTransitionEvent) => {
       if (e.persisted) {
@@ -213,8 +228,18 @@ export default function QuizPage() {
       }
     };
 
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible' && submittedOnHideRef.current) {
+        window.location.reload();
+      }
+    };
+
     window.addEventListener('pageshow', handlePageShow);
-    return () => window.removeEventListener('pageshow', handlePageShow);
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => {
+      window.removeEventListener('pageshow', handlePageShow);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
   }, []);
 
   // Warn the user before leaving an in-progress exam.
