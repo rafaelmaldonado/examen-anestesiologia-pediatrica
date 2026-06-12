@@ -65,7 +65,7 @@ export async function GET(request: Request) {
     if (!existingResult.empty) {
       return NextResponse.json(
         { error: "Ya completaste este examen. Solo se permite un intento por estudiante." },
-        { status: 409 }
+        { status: 409, headers: { "Cache-Control": "no-store, must-revalidate" } }
       );
     }
 

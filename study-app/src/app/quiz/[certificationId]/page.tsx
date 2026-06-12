@@ -41,7 +41,9 @@ export default function QuizPage() {
     const fetchQuestions = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`/api/quiz?certificationId=${certificationId}&count=20`);
+        const res = await fetch(`/api/quiz?certificationId=${certificationId}&count=20`, {
+          cache: 'no-store',
+        });
 
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
@@ -291,38 +293,17 @@ export default function QuizPage() {
     return () => { clearInterval(timerRef.current!); };
   }, [questions.length, loading]); // examStarted intentionally excluded — use ref instead
 
-  // Tracks whether the page was hidden while an exam was in progress.
-  const wasHiddenRef = useRef(false);
-
-  // Recalculate immediately when tab becomes visible again (background tabs throttle intervals).
-  //
-  // On mobile, leaving the exam fires `pagehide`, which submits the in-progress
-  // answers via sendBeacon — so by the time the user returns the exam is already
-  // completed server-side. But the return isn't always a BFCache restore
-  // (`pageshow` with persisted=true), so the React tree stays alive with the
-  // stale exam visible and the user only sees "Examen ya completado" after a
-  // manual refresh. To fix this, when the page becomes visible again after
-  // having been hidden during an in-progress exam, force a full reload so the
-  // server-side one-attempt check (409) runs and the completed screen shows.
+  // Recalculate immediately when tab becomes visible again (background tabs throttle intervals)
   useEffect(() => {
     const onVisibilityChange = () => {
-      if (document.visibilityState === 'hidden') {
-        if (examStarted && !submitting) wasHiddenRef.current = true;
-        return;
-      }
-      // visible
-      if (wasHiddenRef.current && examStarted && !submitting) {
-        window.location.reload();
-        return;
-      }
-      if (!examDeadlineRef.current) return;
+      if (document.visibilityState !== 'visible' || !examDeadlineRef.current) return;
       const remainingSeconds = Math.max(0, Math.ceil((examDeadlineRef.current - Date.now()) / 1000));
       setTimeLeft(remainingSeconds);
     };
 
     document.addEventListener('visibilitychange', onVisibilityChange);
     return () => document.removeEventListener('visibilitychange', onVisibilityChange);
-  }, [examStarted, submitting]);
+  }, []);
 
   // Auto-submit when time runs out — only after timer has actually started and counted down
   useEffect(() => {
@@ -418,7 +399,7 @@ export default function QuizPage() {
   const timeExpired = timeLeft === 0 && examStarted;
 
   return (
-    <div className="container mx-auto px-4 pt-5 pb-44 sm:px-8 sm:pt-6 sm:pb-48 max-w-3xl">
+    <div className="container mx-auto px-4 pt-5 pb-8 sm:px-8 sm:pt-6 sm:pb-10 max-w-3xl">
       {/* Time expired / submitting overlay */}
       {(timeExpired || submitting) && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
@@ -559,7 +540,7 @@ export default function QuizPage() {
       </div>
 
       {/* Sticky bottom: navigation buttons + question navigator */}
-      <div className="fixed bottom-0 inset-x-0 bg-[var(--background-secondary)]/95 backdrop-blur-md border-t border-[var(--border)] px-4 sm:px-8 pt-3 pb-4 z-30">
+      <div className="sticky bottom-0 -mx-4 sm:-mx-8 bg-[var(--background-secondary)]/95 backdrop-blur-md border-t border-[var(--border)] px-4 sm:px-8 pt-3 pb-4 z-30">
         <div className="max-w-3xl mx-auto">
           <div className="flex justify-between items-center gap-3 mb-3">
             <button
