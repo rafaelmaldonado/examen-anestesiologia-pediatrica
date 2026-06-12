@@ -291,17 +291,38 @@ export default function QuizPage() {
     return () => { clearInterval(timerRef.current!); };
   }, [questions.length, loading]); // examStarted intentionally excluded — use ref instead
 
-  // Recalculate immediately when tab becomes visible again (background tabs throttle intervals)
+  // Tracks whether the page was hidden while an exam was in progress.
+  const wasHiddenRef = useRef(false);
+
+  // Recalculate immediately when tab becomes visible again (background tabs throttle intervals).
+  //
+  // On mobile, leaving the exam fires `pagehide`, which submits the in-progress
+  // answers via sendBeacon — so by the time the user returns the exam is already
+  // completed server-side. But the return isn't always a BFCache restore
+  // (`pageshow` with persisted=true), so the React tree stays alive with the
+  // stale exam visible and the user only sees "Examen ya completado" after a
+  // manual refresh. To fix this, when the page becomes visible again after
+  // having been hidden during an in-progress exam, force a full reload so the
+  // server-side one-attempt check (409) runs and the completed screen shows.
   useEffect(() => {
     const onVisibilityChange = () => {
-      if (document.visibilityState !== 'visible' || !examDeadlineRef.current) return;
+      if (document.visibilityState === 'hidden') {
+        if (examStarted && !submitting) wasHiddenRef.current = true;
+        return;
+      }
+      // visible
+      if (wasHiddenRef.current && examStarted && !submitting) {
+        window.location.reload();
+        return;
+      }
+      if (!examDeadlineRef.current) return;
       const remainingSeconds = Math.max(0, Math.ceil((examDeadlineRef.current - Date.now()) / 1000));
       setTimeLeft(remainingSeconds);
     };
 
     document.addEventListener('visibilitychange', onVisibilityChange);
     return () => document.removeEventListener('visibilitychange', onVisibilityChange);
-  }, []);
+  }, [examStarted, submitting]);
 
   // Auto-submit when time runs out — only after timer has actually started and counted down
   useEffect(() => {
