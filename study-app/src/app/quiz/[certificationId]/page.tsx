@@ -156,9 +156,11 @@ export default function QuizPage() {
   useEffect(() => {
     if (!examStarted || submitting) return;
 
-    const handlePageHide = () => {
+    const submitOnLeave = () => {
       const { questions, userAnswers, certificationId, isAdminUser, isTestAttempt } = examDataRef.current;
       if (!questions.length) return;
+      // Only ever submit-on-leave once, even though it's wired to multiple events.
+      if (submittedOnHideRef.current) return;
 
       // Mark that we've submitted on leave so that when the page becomes
       // visible again (return to the exam), we force a reload to surface the
@@ -200,8 +202,22 @@ export default function QuizPage() {
       }
     };
 
-    window.addEventListener('pagehide', handlePageHide);
-    return () => window.removeEventListener('pagehide', handlePageHide);
+    // Chrome on iOS does NOT reliably fire `pagehide` (or `beforeunload`/
+    // `popstate`) when the user taps the browser back button. The one event it
+    // DOES fire consistently as the page goes away is `visibilitychange` →
+    // 'hidden'. Wiring the beacon to both means the in-progress exam is
+    // submitted whether the page is unloaded (pagehide) or merely backgrounded/
+    // navigated-away (visibility hidden), so re-entering hits the 409 screen.
+    const handleVisibilityHidden = () => {
+      if (document.visibilityState === 'hidden') submitOnLeave();
+    };
+
+    window.addEventListener('pagehide', submitOnLeave);
+    document.addEventListener('visibilitychange', handleVisibilityHidden);
+    return () => {
+      window.removeEventListener('pagehide', submitOnLeave);
+      document.removeEventListener('visibilitychange', handleVisibilityHidden);
+    };
   }, [examStarted, submitting]);
 
   // True once `pagehide` has submitted the in-progress exam on leave.
